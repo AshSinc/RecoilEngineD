@@ -58,6 +58,8 @@ class LuaSyncedMoveCtrl {
 		// *MoveType-specific setters
 		static int SetGroundMoveTypeData(lua_State* L);
 		static int SetAirMoveTypeData(lua_State* L);
+		static int SetHoverSpaceMoveTypeData(lua_State* L);
+		static int SetStrafeSpaceMoveTypeData(lua_State* L);
 		static int SetGunshipMoveTypeData(lua_State* L);
 		static int SetBaseMoveTypeData(lua_State* L);
 

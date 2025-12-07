@@ -73,6 +73,8 @@ public:
 	bool IsExtractorUnit()     const { return (extractsMetal > 0.0f && extractRange > 0.0f); }
 	bool IsGroundUnit()        const { return (pathType != -1U && !canfly); }
 	bool IsAirUnit()           const { return (pathType == -1U &&  canfly); }
+	bool IsSpaceUnit()			const { return (pathType == -1U &&  canfly && isSpacecraft); }
+	bool IsSpaceStrafingUnit()			const { return (pathType == -1U &&  canfly && isSpacecraft && isStrafingSpacecraft); }
 	bool IsStrafingAirUnit()   const { return (IsAirUnit() && !(IsBuilderUnit() || IsTransportUnit() || hoverAttack)); }
 	bool IsHoveringAirUnit()   const { return (IsAirUnit() &&  (IsBuilderUnit() || IsTransportUnit() || hoverAttack)); }
 	bool IsFighterAirUnit()    const { return (IsStrafingAirUnit() && HasWeapon(0) && !HasBomberWeapon(0)); }
@@ -181,6 +183,8 @@ public:
 	float terraformSpeed;
 
 	bool canSubmerge;
+	bool isSpacecraft;
+	bool isStrafingSpacecraft;
 	bool canfly;
 	bool floatOnWater;
 	bool pushResistant;

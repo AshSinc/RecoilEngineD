@@ -14,6 +14,8 @@
 #include "Sim/MoveTypes/AAirMoveType.h"
 #include "Sim/MoveTypes/StrafeAirMoveType.h"
 #include "Sim/MoveTypes/HoverAirMoveType.h"
+#include "Sim/MoveTypes/HoverSpaceMoveType.h"
+#include "Sim/MoveTypes/StrafeSpaceMoveType.h"
 #include "Sim/Units/Unit.h"
 #include "Sim/Units/UnitHandler.h"
 #include "System/SpringMath.h"
@@ -905,6 +907,35 @@ int LuaSyncedMoveCtrl::SetGunshipMoveTypeData(lua_State* L)
 int LuaSyncedMoveCtrl::SetAirMoveTypeData(lua_State* L)
 {
 	return (SetMoveTypeData(L, ParseDerivedMoveType<CStrafeAirMoveType>(L, __func__, 1), __func__));
+}
+
+/***
+ * @function MoveCtrl.SetSpaceMoveTypeData
+ * @param unitID integer
+ * @param key
+ * | "maneuverBlockTime"
+ * @param value integer
+ * @return number numAssignedValues
+ */
+int LuaSyncedMoveCtrl::SetHoverSpaceMoveTypeData(lua_State* L)
+{
+	return (SetMoveTypeData(L, ParseDerivedMoveType<HoverSpaceMoveType>(L, __func__, 1), __func__));
+}
+
+
+//ISSUE need to make this StrafeSpaceMoveType
+
+/***
+ * @function MoveCtrl.SetSpaceMoveTypeData
+ * @param unitID integer
+ * @param key
+ * | "maneuverBlockTime"
+ * @param value integer
+ * @return number numAssignedValues
+ */
+int LuaSyncedMoveCtrl::SetStrafeSpaceMoveTypeData(lua_State* L)
+{
+	return (SetMoveTypeData(L, ParseDerivedMoveType<StrafeSpaceMoveType>(L, __func__, 1), __func__));
 }
 
 /***

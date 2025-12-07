@@ -124,6 +124,8 @@ UnitDef::UnitDef()
 	, terraformSpeed(0.0f)
 
 	, canSubmerge(false)
+	, isSpacecraft(true) //defaulting to true
+	, isStrafingSpacecraft(false)
 	, canfly(false)
 	, floatOnWater(false)
 	, pushResistant(false)
@@ -501,6 +503,9 @@ UnitDef::UnitDef(const LuaTable& udTable, const std::string& unitName, int id)
 	showNanoFrame = udTable.GetBool("showNanoFrame", true);
 	showNanoSpray = udTable.GetBool("showNanoSpray", true);
 	nanoColor = udTable.GetFloat3("nanoColor", float3(0.2f,0.7f,0.2f));
+
+	isSpacecraft = udTable.GetBool("isSpacecraft",      false); //Testing  
+	isStrafingSpacecraft = udTable.GetBool("isStrafingSpacecraft",      false); //Testing  
 
 	canfly      = udTable.GetBool("canFly",      false);
 	canSubmerge = udTable.GetBool("canSubmerge", false) && canfly;

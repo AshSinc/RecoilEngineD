@@ -1,8 +1,11 @@
 /* This file is part of the Spring engine (GPL v2 or later), see LICENSE.html */
 #include "MoveTypeFactory.h"
 #include "MoveDefHandler.h"
+//#include "SpaceMoveType.h" //This needs to be the concrete class rather than abstract
 #include "StrafeAirMoveType.h"
 #include "HoverAirMoveType.h"
+#include "HoverSpaceMoveType.h"
+#include "StrafeSpaceMoveType.h"
 #include "GroundMoveType.h"
 #include "StaticMoveType.h"
 #include "ScriptMoveType.h"
@@ -11,6 +14,7 @@
 #include "Sim/Units/UnitDef.h"
 
 #include "System/Misc/TracyDefs.h"
+#include <iostream>
 
 void MoveTypeFactory::InitStatic() {
 	RECOIL_DETAILED_TRACY_ZONE;
@@ -34,6 +38,14 @@ AMoveType* MoveTypeFactory::GetMoveType(CUnit* unit, const UnitDef* ud) {
 		unit->moveDef = moveDefHandler.GetMoveDefByPathType(ud->pathType);
 
 		return (new (unit->amtMemBuffer) CGroundMoveType(unit));
+	}
+
+	if (ud->IsSpaceUnit()) {
+		if(ud->IsSpaceStrafingUnit())
+			return (new (unit->amtMemBuffer) HoverSpaceMoveType(unit)); //Need to add StrafeSpaceMoveType here enventually ISSUE - Actually I might not, HoverSpaceMoveType might be enough?
+		else
+		
+			return (new (unit->amtMemBuffer) HoverSpaceMoveType(unit));
 	}
 
 	if (ud->IsAirUnit()) {
