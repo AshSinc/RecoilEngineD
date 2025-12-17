@@ -18,6 +18,7 @@
 #include "Rendering/Shaders/ShaderHandler.h"
 #include "System/Config/ConfigHandler.h"
 #include "System/StringUtil.h"
+#include "System/Log/ILog.h"
 #include "fmt/format.h"
 
 #include "System/Misc/TracyDefs.h"
@@ -335,13 +336,17 @@ bool CTextureRenderAtlas::CalculateAtlas()
 	if (atlasFinalized)
 		return true;
 
-	return (atlasFinalized = atlasAllocator->Allocate());
+	atlasFinalized = atlasAllocator->Allocate();
+	LOG_L(L_INFO, "CTextureRenderAtlas::%s() atlas=%s atlasFinalized=%d", __func__, atlasName.c_str(), atlasFinalized);
+	return atlasFinalized;
 }
 
 bool CTextureRenderAtlas::CreateAtlasTexture()
 {
 	if (atlasRendered)
 		return true;
+
+	LOG_L(L_INFO, "CTextureRenderAtlas::%s()[0] atlas=%s FBO::ready=%d", __func__, atlasName.c_str(), FBO::IsReady());
 
 	if (!FBO::IsReady())
 		return false;
@@ -448,6 +453,8 @@ bool CTextureRenderAtlas::CreateAtlasTexture()
 		FBO::Unbind();
 		globalRendering->LoadViewport();
 	}
+
+	LOG_L(L_INFO, "CTextureRenderAtlas::%s()[1] atlas=%s atlasRendered=%d", __func__, atlasName.c_str(), atlasRendered);
 
 	if (!atlasRendered)
 		return false;
