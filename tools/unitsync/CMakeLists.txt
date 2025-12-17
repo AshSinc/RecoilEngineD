@@ -12,6 +12,7 @@ find_package_static(ZLIB 1.2.7 REQUIRED)
 list(APPEND unitsync_libs ${CMAKE_DL_LIBS})
 list(APPEND unitsync_libs 7zip prd::jsoncpp lua headlessStubs archives_nothreadpool nowide::nowide)
 list(APPEND unitsync_libs ZLIB::ZLIB)
+list(APPEND unitsync_libs lzma)
 list(APPEND unitsync_libs ${SPRING_MINIZIP_LIBRARY})
 
 ### base64 from pr-downloader
