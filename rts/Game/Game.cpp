@@ -15,6 +15,7 @@
 #include "GlobalUnsynced.h"
 #include "LoadScreen.h"
 #include "SelectedUnitsHandler.h"
+// #include "SquadHandler.h"
 #include "WaitCommandsAI.h"
 #include "WordCompletion.h"
 #include "IVideoCapturing.h"
@@ -761,6 +762,7 @@ void CGame::LoadInterface()
 	mouse->ReloadCursors();
 
 	selectedUnitsHandler.Init(playerHandler.ActivePlayers());
+	// squadHandler.Init(selectedUnitsHandler);
 
 	// NB: these are also added to word-completion
 	syncedGameCommands->AddDefaultActionExecutors();

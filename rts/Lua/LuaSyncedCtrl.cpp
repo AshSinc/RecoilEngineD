@@ -45,6 +45,7 @@
 #include "Sim/Misc/QuadField.h"
 #include "Sim/Misc/Wind.h"
 #include "Sim/MoveTypes/AAirMoveType.h"
+#include "Sim/MoveTypes/ASpaceMoveType.h"
 #include "Sim/Path/IPathManager.h"
 #include "Sim/Projectiles/ExplosionGenerator.h"
 #include "Sim/Projectiles/Projectile.h"
@@ -1843,13 +1844,15 @@ int LuaSyncedCtrl::CreateUnit(lua_State* L)
 	params.beingBuilt = beingBuilt;
 	params.flattenGround = flattenGround;
 
+	///Note this calls unitLoader here
 	CUnit* unit = unitLoader->LoadUnit(params);
 	inCreateUnit--;
 
 	if (unit == nullptr)
 		return 0;
 
-	unit->SetSoloBuilder(builder, unitDef);
+		//and here it calls a function on unit
+		unit->SetSoloBuilder(builder, unitDef);
 
 	lua_pushnumber(L, unit->id);
 	return 1;
@@ -3310,6 +3313,41 @@ int LuaSyncedCtrl::SetUnitCrashing(lua_State* L) {
 	lua_pushboolean(L, ret);
 	return 1;
 }
+
+/***
+ * @function Spring.SetUnitCrashing
+ * @param unitID integer
+ * @param crashing boolean
+ * @return boolean success
+ */
+int LuaSyncedCtrl::SetSpaceUnitAccelerationDelay(lua_State* L) {
+	CUnit* unit = ParseUnit(L, __func__, 1);
+
+	if (unit == nullptr)
+		return 0;
+
+	// AAirMoveType* amt = dynamic_cast<AAirMoveType*>(unit->moveType);
+	// bool ret = false;
+
+	// if (amt != nullptr) {
+	// 	const bool wantCrash = luaL_optboolean(L, 2, false);
+	// 	const AAirMoveType::AircraftState aircraftState = amt->aircraftState;
+
+	// 	// for simplicity, this can only set a non-landed aircraft to
+	// 	// start crashing, or a crashing aircraft to start flying
+	// 	if ( wantCrash && (aircraftState != AAirMoveType::AIRCRAFT_LANDED))
+	// 		amt->SetState(AAirMoveType::AIRCRAFT_CRASHING);
+
+	// 	if (!wantCrash && (aircraftState == AAirMoveType::AIRCRAFT_CRASHING))
+	// 		amt->SetState(AAirMoveType::AIRCRAFT_FLYING);
+
+	// 	ret = (amt->aircraftState != aircraftState);
+	// }
+
+	// lua_pushboolean(L, ret);
+	return 1;
+}
+
 
 
 /***
@@ -7985,3 +8023,44 @@ int LuaSyncedCtrl::RemoveUnitCmdDesc(lua_State* L)
 	unit->commandAI->RemoveCommandDescription(cmdDescIdx);
 	return 0;
 }
+
+
+// /*** Sets a unit's radar wobble
+//  *
+//  * Controls how much a unit's radar dot will wobble. Note that setting
+//  * this above the allyTeam's default wobble may result in the edgemost
+//  * dot positions failing to register in ray traces, i.e. things like
+//  * native "is under cursor" checks and some Lua interfaces.
+//  *
+//  * @function Spring.SetUnitPosErrorParams
+//  * @param unitID integer
+//  * @param posErrorVectorX number
+//  * @param posErrorVectorY number
+//  * @param posErrorVectorZ number
+//  * @param posErrorDeltaX number
+//  * @param posErrorDeltaY number
+//  * @param posErrorDeltaZ number
+//  * @param nextPosErrorUpdate number?
+//  * @return nil
+//  */
+// int LuaSyncedCtrl::SetUnitSquadData(lua_State* L)sdad as
+// {
+// 	CUnit* unit = ParseUnit(L, __func__, 1);
+
+// 	if (unit == nullptr)
+// 		return 0;
+
+// 	unit->posErrorVector.x = luaL_optfloat(L, 2, unit->posErrorVector.x);
+// 	unit->posErrorVector.y = luaL_optfloat(L, 3, unit->posErrorVector.y);
+// 	unit->posErrorVector.z = luaL_optfloat(L, 4, unit->posErrorVector.z);
+// 	unit->posErrorDelta.x = luaL_optfloat(L, 5, unit->posErrorDelta.x);
+// 	unit->posErrorDelta.y = luaL_optfloat(L, 6, unit->posErrorDelta.y);
+// 	unit->posErrorDelta.z = luaL_optfloat(L, 7, unit->posErrorDelta.z);
+
+// 	unit->nextPosErrorUpdate = luaL_optint(L, 8, unit->nextPosErrorUpdate);
+
+// 	if (lua_isnumber(L, 9) && lua_isboolean(L, 10))
+// 		unit->SetPosErrorBit(std::clamp(lua_tointeger(L, 9), 0, teamHandler.ActiveAllyTeams()), lua_toboolean(L, 10));
+
+// 	return 0;
+// }

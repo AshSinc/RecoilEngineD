@@ -264,6 +264,9 @@ class LuaSyncedCtrl
 		static int SetExperienceGrade(lua_State* L);
 
 		static int SetRadarErrorParams(lua_State* L);
+
+		// static int SetSquadStuff(lua_State* L); //could try something from here, which calls squad handler in cpp, can be called from lua
+		static int SetSpaceUnitAccelerationDelay(lua_State* L);
 };
 
 

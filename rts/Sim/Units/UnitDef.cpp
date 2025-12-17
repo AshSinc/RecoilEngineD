@@ -125,7 +125,7 @@ UnitDef::UnitDef()
 
 	, canSubmerge(false)
 	, isSpacecraft(true) //defaulting to true
-	, isStrafingSpacecraft(false)
+	, isStrafingSpacecraft(true)
 	, canfly(false)
 	, floatOnWater(false)
 	, pushResistant(false)

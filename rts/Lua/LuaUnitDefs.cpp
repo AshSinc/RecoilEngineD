@@ -526,6 +526,8 @@ TYPE_FUNC(IsHoveringAirUnit, boolean)
 TYPE_FUNC(IsFighterAirUnit, boolean)
 TYPE_FUNC(IsBomberAirUnit, boolean)
 
+TYPE_FUNC(IsSpaceStrafingUnit, boolean)
+TYPE_FUNC(IsSpaceUnit, boolean)
 
 
 static int ReturnEmptyString(lua_State* L, const void* data) {
@@ -617,6 +619,9 @@ ADD_BOOL("canAttackWater",  canAttackWater); // CUSTOM
 	ADD_FUNCTION("isHoveringAirUnit", ud, IsHoveringAirUnit);
 	ADD_FUNCTION("isFighterAirUnit", ud, IsFighterAirUnit);
 	ADD_FUNCTION("isBomberAirUnit", ud, IsBomberAirUnit);
+
+	ADD_FUNCTION("isStrafingSpaceUnit", ud, IsSpaceStrafingUnit);
+	ADD_FUNCTION("isSpaceUnit", ud, IsSpaceUnit);
 
 	ADD_FUNCTION("modelname", ud, ModelName);
 	ADD_FUNCTION("modeltype", ud, ModelType);
@@ -766,6 +771,9 @@ ADD_BOOL("canAttackWater",  canAttackWater); // CUSTOM
 	ADD_FLOAT("terraformSpeed", ud.terraformSpeed);
 
 	ADD_FLOAT("upDirSmoothing", ud.upDirSmoothing);
+
+	ADD_BOOL("isSpacecraft",            ud.isSpacecraft);
+	ADD_BOOL("isStrafingSpacecraft",            ud.isStrafingSpacecraft);
 
 	ADD_BOOL("canSubmerge",       ud.canSubmerge);
 	ADD_BOOL("floatOnWater",      ud.floatOnWater);

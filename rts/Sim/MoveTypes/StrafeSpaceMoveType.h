@@ -33,11 +33,11 @@ public:
 
 	void UpdateManeuver();
 	void UpdateAttack();
-	bool UpdateFlying(float wantedHeight, float wantedThrottle);
+	bool UpdateFlying(float wantedThrottle);
 	//void UpdateLanding();
 	bool UpdateAirPhysics(const float4& controlInputs, const float3& thrustVector);
 	void SetState(SpacecraftMovementState state) override;
-	void UpdateTakeOff();
+	// void UpdateTakeOff();
 	void UpdateBanking(bool noBanking);
 
 	//float3 FindLandingPos(float3 landPos);
@@ -49,8 +49,11 @@ public:
 	void StartMoving(float3 pos, float goalRadius) override;
 	void StartMoving(float3 pos, float goalRadius, float speed) override;
 	void StopMoving(bool callScript = false, bool hardStop = false, bool cancelRaw = false) override;
+	void ExecuteStop();
+	bool wantToStop = false;
+	void Brake();
 
-	void Takeoff() override;
+	// void Takeoff() override;
 
 private:
 	bool HandleCollisions(bool checkCollisions);
@@ -63,6 +66,8 @@ public:
 
 	bool loopbackAttack = false;
 	bool isFighter = false;
+
+	float groundHeight = 0.0f;
 
 	float wingDrag = 0.07f;
 	float wingAngle = 0.1f;

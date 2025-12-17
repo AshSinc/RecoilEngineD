@@ -2,6 +2,7 @@
 
 
 #include "StrafeSpaceMoveType.h"
+#include "ASpaceMoveType.h"
 #include "Game/Players/Player.h"
 #include "Map/Ground.h"
 #include "Map/MapInfo.h"
@@ -18,7 +19,12 @@
 #include "System/SpringMath.h"
 #include "System/SpringHash.h"
 
+#include "Sim/Units/UnitHandler.h"
+
 #include "System/Misc/TracyDefs.h"
+
+#include <iostream>
+#include <string>
 
 CR_BIND_DERIVED(StrafeSpaceMoveType, ASpaceMoveType, (nullptr))
 
@@ -96,7 +102,7 @@ static const unsigned int FLOAT_MEMBER_HASHES[] = {
 // extern ASpaceMoveType::GetGroundHeightFunc amtGetGroundHeightFuncs[6];
 extern ASpaceMoveType::EmitCrashTrailFunc amtEmitCrashTrailFuncs_Space[2];
 
-
+float wantedHeight = 0;
 
 static float TurnRadius(const float rawRadius, const float rawSpeed) {
 	RECOIL_DETAILED_TRACY_ZONE;
@@ -125,7 +131,10 @@ static float GetRudderDeflection(
 	RECOIL_DETAILED_TRACY_ZONE;
 	float rudder = 0.0f;
 
-	const float minGroundHeight = std::min(groundHeight + 15.0f, wantedHeight) * (1.0f + isAttacking);
+	// = pos.y - 100;
+	// wantedHeight = 
+
+	const float minGroundHeight = groundHeight + 15.0f * (1.0f + isAttacking);
 	const float maxRudderSpeedf = std::max(0.01f, maxRudder * spd.w * (1.0f + isAttacking));
 
 	const float minHeightMult = (pos.y >= minGroundHeight);
@@ -337,7 +346,8 @@ static float3 GetControlSurfaceAngles(
 
 	// yaw (rudder), pitch (elevator), roll (aileron)
 	ctrlAngles.x = (yprInputLocks.x != 0.0f)? GetRudderDeflection  (owner, collidee,  pos, spd,  rightdir, updir, frontdir, goalDir,  groundHeight, wantedHeight,  maxCtrlAngles.x, maxBodyAngles.x,  goalDotRight, goalDotFront,  avoidCollision, isAttacking): 0.0f;
-	ctrlAngles.y = (yprInputLocks.y != 0.0f)? GetElevatorDeflection(owner, collidee,  pos, spd,  rightdir, updir, frontdir, goalDir,  groundHeight, wantedHeight,  maxCtrlAngles.y, maxBodyAngles.y,  goalDotRight, goalDotFront,  avoidCollision, isAttacking): 0.0f;
+	//ctrlAngles.y = (yprInputLocks.y != 0.0f)? GetElevatorDeflection(owner, collidee,  pos, spd,  rightdir, updir, frontdir, goalDir,  groundHeight, wantedHeight,  maxCtrlAngles.y, maxBodyAngles.y,  goalDotRight, goalDotFront,  avoidCollision, isAttacking): 0.0f;
+	ctrlAngles.y =  0.0f;
 	ctrlAngles.z = (yprInputLocks.z != 0.0f)? GetAileronDeflection (owner, collidee,  pos, spd,  rightdir, updir, frontdir, goalDir,  groundHeight, wantedHeight,  maxCtrlAngles.z, maxBodyAngles.z,  goalDotRight, goalDotFront,  avoidCollision, isAttacking): 0.0f;
 
 	// let the previous control angles have some authority
@@ -398,9 +408,9 @@ StrafeSpaceMoveType::StrafeSpaceMoveType(CUnit* owner): ASpaceMoveType(owner)
 	turnRadius = owner->unitDef->turnRadius;
 
 
-	// wantedHeight =
-	// 	(owner->unitDef->wantedHeight * 1.5f) +
-	// 	((gsRNG.NextFloat() - 0.3f) * 15.0f * (isFighter? 2.0f: 1.0f));
+	wantedHeight =
+		(owner->unitDef->wantedHeight * 1.5f) +
+		((gsRNG.NextFloat() - 0.3f) * 15.0f);// * (isFighter? 2.0f: 1.0f));
 
 	// orgWantedHeight = wantedHeight;
 
@@ -423,7 +433,10 @@ StrafeSpaceMoveType::StrafeSpaceMoveType(CUnit* owner): ASpaceMoveType(owner)
 	SetMaxSpeed(maxSpeedDef);
 }
 
+void StrafeSpaceMoveType::Brake()
+{
 
+}
 
 bool StrafeSpaceMoveType::Update()
 {
@@ -431,7 +444,14 @@ bool StrafeSpaceMoveType::Update()
 	const float3 lastPos = owner->pos;
 	const float4 lastSpd = owner->speed;
 
+	amtEmitCrashTrailFuncs_Space[0](owner, 0);
+	if (owner->GetTransporter() != nullptr) return false;
+
 	ASpaceMoveType::Update();
+
+	
+
+	// wantedHeight = lastPos.y;
 
 	// need to additionally check that we are not crashing,
 	// otherwise we might fall through the map when stunned
@@ -441,45 +461,59 @@ bool StrafeSpaceMoveType::Update()
 		return (HandleCollisions(collide && !owner->beingBuilt && (spacecraftState != SPACECRAFT_TAKEOFF)));
 	}
 
-	if (spacecraftState != SPACECRAFT_CRASHING) {
-		if (owner->UnderFirstPersonControl()) {
-			SetState(SPACECRAFT_FLYING);
+	// if (spacecraftState != SPACECRAFT_CRASHING) {
+	// 	if (owner->UnderFirstPersonControl()) {
+	// 		SetState(SPACECRAFT_FLYING);
 
-			const CPlayer* fpsPlayer = owner->fpsControlPlayer;
-			const FPSUnitController& fpsCon = fpsPlayer->fpsController;
+	// 		const CPlayer* fpsPlayer = owner->fpsControlPlayer;
+	// 		const FPSUnitController& fpsCon = fpsPlayer->fpsController;
 
-			float aileron = 0.0f;
-			float elevator = 0.0f;
+	// 		float aileron = 0.0f;
+	// 		float elevator = 0.0f;
 
-			elevator -= (1.0f * fpsCon.forward);
-			elevator += (1.0f * fpsCon.back   );
-			aileron  += (1.0f * fpsCon.right  );
-			aileron  -= (1.0f * fpsCon.left   );
+	// 		elevator -= (1.0f * fpsCon.forward);
+	// 		elevator += (1.0f * fpsCon.back   );
+	// 		aileron  += (1.0f * fpsCon.right  );
+	// 		aileron  -= (1.0f * fpsCon.left   );
 
-			UpdateAirPhysics({0.0f, elevator, aileron, 1.0f}, owner->frontdir);
-			maneuverState = MANEUVER_FLY_STRAIGHT;
+	// 		UpdateAirPhysics({0.0f, elevator, aileron, 1.0f}, owner->frontdir);
+	// 		maneuverState = MANEUVER_FLY_STRAIGHT;
 
-			return (HandleCollisions(collide && !owner->beingBuilt && (spacecraftState != SPACECRAFT_TAKEOFF)));
+	// 		return (HandleCollisions(collide && !owner->beingBuilt && (spacecraftState != SPACECRAFT_TAKEOFF)));
 
-		}
-	}
+	// 	}
+	// }
 
 	switch (spacecraftState) {
 		case SPACECRAFT_FLYING: {
+			// amtEmitCrashTrailFuncs_Space[0](owner, 0);
 
 			const CCommandQueue& cmdQue = owner->commandAI->commandQue;
 
 			const bool isAttacking = (!cmdQue.empty() && (cmdQue.front()).GetID() == CMD_ATTACK);
 			const bool keepAttacking = ((owner->curTarget.type == Target_Unit && !owner->curTarget.unit->isDead) || owner->curTarget.type == Target_Pos);
 
-			/*
+			
 			const float brakeDistSq = Square(0.5f * lastSpd.SqLength2D() / decRate);
 			const float goalDistSq = (goalPos - lastPos).SqLength2D();
 
 			if (brakeDistSq >= goalDistSq && !owner->commandAI->HasMoreMoveCommands()) {
-				SetState(SPACECRAFT_LANDING);
-			} else
-			*/
+				// SetState(SPACECRAFT_HOVERING);
+				UpdateAirPhysics({0.0f, 0, 0, 0.0f}, (goalPos - lastPos) * decRate);
+				// UpdateFlying(1.0f);
+				// Brake();
+
+				if(goalDistSq < 1.0f)
+				{
+					owner->Move(goalPos, false);
+					owner->SetPosition(goalPos);
+					SetState(SPACECRAFT_HOVERING);
+				}
+
+				// owner->Move(goalPos, false);
+				// owner->SetPosition(goalPos);
+			} 
+			else
 			{
 				if (isAttacking && keepAttacking) {
 					switch (owner->curTarget.type) {
@@ -510,7 +544,7 @@ bool StrafeSpaceMoveType::Update()
 						// }
 					}
 				} else {
-					//UpdateFlying(wantedHeight, 1.0f);
+					UpdateFlying(1.0f);
 				}
 			}
 		} break;
@@ -527,17 +561,25 @@ bool StrafeSpaceMoveType::Update()
 			// 	owner->ForcedKillUnit(nullptr, true, false, -CSolidObject::DAMAGE_SPACECRAFT_CRASHED);
 			// }
 
-			//amtEmitCrashTrailFuncs[crashExpGenID != -1u](owner, crashExpGenID);
 		} break;
 		case SPACECRAFT_TAKEOFF:
-			UpdateTakeOff();
+			//UpdateTakeOff();
 			break;
+		case SPACECRAFT_HOVERING: {
+			// NOTE: the crashing-state can only be set (and unset) by scripts
+			// if (UpdateAirPhysics({crashRudder, crashElevator, crashAileron, 0.0f}, owner->frontdir)
+			// 		|| (CGround::GetHeightAboveWater(owner->pos.x, owner->pos.z) + 5.0f + owner->radius) > owner->pos.y){
+			// 	owner->ForcedKillUnit(nullptr, true, false, -CSolidObject::DAMAGE_SPACECRAFT_CRASHED);
+			// }
+			// UpdateAirPhysics({0.0f, 0, 0, 0.0f}, ZeroVector);
+			//amtEmitCrashTrailFuncs[crashExpGenID != -1u](owner, crashExpGenID);
+		} break;
 		default:
 			break;
 	}
 
 	if (lastSpd == ZeroVector && owner->speed != ZeroVector) { owner->script->StartMoving(false); }
-	if (lastSpd != ZeroVector && owner->speed == ZeroVector) { owner->script->StopMoving(); }
+	// if (lastSpd != ZeroVector && owner->speed == ZeroVector) { owner->script->StopMoving(); }
 
 	// Turn and bank and move; update dirs
 	//UpdateHeading();
@@ -678,13 +720,40 @@ bool StrafeSpaceMoveType::HandleCollisions(bool checkCollisions) {
 	return false;
 }
 
-
+bool unitParamsUpToDate = false;
 
 void StrafeSpaceMoveType::SlowUpdate()
 {
 	RECOIL_DETAILED_TRACY_ZONE;
 	// note: NOT ASpaceMoveType::SlowUpdate
 	AMoveType::SlowUpdate();
+
+	// if(!unitParamsUpToDate)
+	// {
+	// 	const auto it = owner->modParams.find("back_id");
+	// 		// if (it != owner->modParams.end())
+				
+	// 	const auto& param = it->second;
+
+	// 	if (std::holds_alternative <std::string> (param.value))
+	// 	{
+	// 		std::string test = std::get <std::string> (param.value);
+	// 		std::cout << "back _id in update string" << "\n";
+    //     	std::cout << "test! " << test << "\n";
+
+	// 	}
+	// 	else if (std::holds_alternative <float> (param.value))
+	// 	{
+	// 		int test2 = std::get <float> (param.value);
+
+	// 		std::cout << "back _id in update float" << "\n";
+    //     	std::cout << "test! " << std::to_string(test2) << "\n";
+	// 		CUnit* unit = unitHandler.GetUnit(test2);
+
+	// 		std::cout << "unit " << "\n";
+    //     	std::cout << "Pos X! " << std::to_string(unit->pos.x) << "\n";		
+	// 	}
+	// }
 }
 
 
@@ -746,8 +815,8 @@ void StrafeSpaceMoveType::UpdateAttack()
 {
 	RECOIL_DETAILED_TRACY_ZONE;
 	// if (!isFighter) {
-	// 	UpdateFlying(wantedHeight, 1.0f);
-	// 	return;
+	//UpdateFlying(wantedHeight, 1.0f);
+	//return;
 	// }
 
 	const float3& pos = owner->pos;
@@ -771,7 +840,7 @@ void StrafeSpaceMoveType::UpdateAttack()
 	oldGoalPos = goalPos;
 	goalPos += difGoalPos;
 
-	//const float gHeightAW = CGround::GetHeightAboveWater(pos.x, pos.z);
+	const float gHeightAW = CGround::GetHeightAboveWater(pos.x, pos.z);
 	const float goalDist = pos.distance(goalPos);
 	const float3 goalDir = (goalDist > 0.0f)?
 		(goalPos - pos) / goalDist:
@@ -781,7 +850,7 @@ void StrafeSpaceMoveType::UpdateAttack()
 	// to avoid colliding with target, evade blast, friendly and enemy fire, etc.
 	if (goalDist < attackSafetyDistance) {
 		//UpdateFlying(wantedHeight, 1.0f);
-		return;
+		//return;
 	}
 
 	float goalDotRight = goalDir.dot(rightDir2D.Normalize2D());
@@ -796,7 +865,8 @@ void StrafeSpaceMoveType::UpdateAttack()
 		const float3  maxBodyAngles    = {0.0f, maxPitch, maxBank};
 		const float3  maxCtrlAngles    = {maxRudder, maxElevator, maxAileron};
 		const float3  prvCtrlAngles[2] = {{lastRudderPos[0], lastElevatorPos[0], lastAileronPos[0]}, {lastRudderPos[1], lastElevatorPos[1], lastAileronPos[1]}};
-		//const float3& curCtrlAngles    = GetControlSurfaceAngles(owner, lastCollidee,  pos, spd,  rightdir, updir, frontdir, goalDir,  OnesVector, maxBodyAngles, maxCtrlAngles, prvCtrlAngles,  gHeightAW, wantedHeight,  goalDotRight, goalDotFront,  false && collisionState == COLLISION_DIRECT, true);
+		const float3& curCtrlAngles    = GetControlSurfaceAngles(owner, lastCollidee,  pos, spd,  rightdir, updir, frontdir, goalDir,  OnesVector, maxBodyAngles, maxCtrlAngles, prvCtrlAngles,  pos.y, wantedHeight,  goalDotRight, goalDotFront,  false && collisionState == COLLISION_DIRECT, true);
+		// const float3& curCtrlAngles    = GetControlSurfaceAngles(owner, lastCollidee,  pos, spd,  rightdir, updir, frontdir, goalDir,  OnesVector, maxBodyAngles, maxCtrlAngles, prvCtrlAngles,  goalDotRight, goalDotFront,  false && collisionState == COLLISION_DIRECT, false);
 
 		const CUnit* attackee = owner->curTarget.unit;
 
@@ -805,13 +875,17 @@ void StrafeSpaceMoveType::UpdateAttack()
 		const float  angleLim = 1.0f - goalDotFront * 0.7f;
 		const float thrustLim = ((attackee == nullptr) || attackee->unitDef->IsGroundUnit())? 1.0f: std::min(1.0f, rangeLim + angleLim);
 
-		//UpdateAirPhysics({curCtrlAngles.x, curCtrlAngles.y, curCtrlAngles.z, thrustLim}, frontdir);
+		UpdateAirPhysics({curCtrlAngles.x, curCtrlAngles.y, curCtrlAngles.z, thrustLim}, frontdir);
 	}
 }
 
+static bool UnitIsBusy(const CCommandAI* cai) {
+	// queued move-commands (or active build/repair/etc-commands) mean unit has to stay airborne
+	return (cai->inCommand != CMD_STOP || cai->HasMoreMoveCommands(false));
+}
+static bool UnitIsBusy(const CUnit* u) { return (UnitIsBusy(u->commandAI)); }
 
-
-bool StrafeSpaceMoveType::UpdateFlying(float wantedHeight, float wantedThrottle)
+bool StrafeSpaceMoveType::UpdateFlying(float wantedThrottle)
 {
 	RECOIL_DETAILED_TRACY_ZONE;
 	const float3& pos = owner->pos;
@@ -827,13 +901,13 @@ bool StrafeSpaceMoveType::UpdateFlying(float wantedHeight, float wantedThrottle)
 	//   --> would lead to infinite circling without adjusting goal
 	const float3 goalVec = goalPos - pos;
 
-	const float goalDist2D = std::max(0.001f, goalVec.Length2D());
+	const float goalDist = std::max(0.001f, goalVec.Length());
 	// const float goalDist3D = std::max(0.001f, goalVec.Length());
 
-	const float3 goalDir2D = goalVec / goalDist2D;
+	const float3 goalDir = goalVec / goalDist;
 	// const float3 goalDir3D = goalVec / goalDist3D;
 
-	const float3 rightDir2D = (rightdir * XZVector).Normalize2D();
+	const float3 rightDir = (rightdir * XZVector).Normalize();
 
 	if (((gs->frameNum + owner->id) & 3) == 0)
 		CheckForCollision();
@@ -843,7 +917,7 @@ bool StrafeSpaceMoveType::UpdateFlying(float wantedHeight, float wantedThrottle)
 	// yaw and roll have to be unconditionally unblocked after a certain
 	// time or SPACECRAFT can fly straight forever e.g. if their target is
 	// another chasing SPACECRAFT
-	const bool allowUnlockYawRoll = (goalDist2D >= TurnRadius(turnRadius, spd.w) || goalVec.dot(owner->frontdir) > 0.0f);
+	const bool allowUnlockYawRoll = (goalDist >= TurnRadius(turnRadius, spd.w) || goalVec.dot(owner->frontdir) > 0.0f);
 	const bool forceUnlockYawRoll = ((gs->frameNum - owner->lastFireWeapon) >= maneuverBlockTime);
 
 
@@ -858,41 +932,123 @@ bool StrafeSpaceMoveType::UpdateFlying(float wantedHeight, float wantedThrottle)
 	// less than our turning radius, turn the other way.
 	// These conditions prevent becoming stuck in a small
 	// circle around goal-position.
-	const float nearGoal = ((goalDist2D < turnRadius * 0.5f && goalDir2D.dot(frontdir) < 0.7f) || (goalDist2D < turnRadius && goalDir2D.dot(frontdir) < -0.1f));
+	const float nearGoal = ((goalDist < turnRadius * 0.5f && goalDir.dot(frontdir) < 0.7f) || (goalDist < turnRadius && goalDir.dot(frontdir) < -0.1f));
 	const float turnFlip = ((!owner->UnderFirstPersonControl() || owner->fpsControlPlayer->fpsController.mouse2) * -2.0f + 1.0f);
 
 	// if nearGoal=0, multiply by 1
 	// if nearGoal=1, multiply by turnFlip
-	const float goalDotFront = goalDir2D.dot(frontdir);
-	const float goalDotRight = goalDir2D.dot(rightDir2D) * ((1.0f - nearGoal) + (nearGoal * turnFlip));
+	const float goalDotFront = goalDir.dot(frontdir);
+	const float goalDotRight = goalDir.dot(rightDir) * ((1.0f - nearGoal) + (nearGoal * turnFlip));
 
-	#if 0
-	// try to steer (yaw) away from nearby SPACECRAFT in front of us
-	if (lastCollidee != nullptr) {
-		const float3 collideeVec = lastCollidee->pos - pos;
+	// #if 0
+	// // try to steer (yaw) away from nearby SPACECRAFT in front of us
+	// if (lastCollidee != nullptr) {
+	// 	const float3 collideeVec = lastCollidee->pos - pos;
 
-		const float collideeDist = collideeVec.Length();
-		const float relativeDist = (collideeDist > 0.0f)?
-			std::max(1200.0f, goalDist2D) / collideeDist * 0.036f:
-			0.0f;
+	// 	const float collideeDist = collideeVec.Length();
+	// 	const float relativeDist = (collideeDist > 0.0f)?
+	// 		std::max(1200.0f, goalDist2D) / collideeDist * 0.036f:
+	// 		0.0f;
 
-		const float3 collideeDir = (collideeDist > 0.0f)?
-			(collideeVec / collideeDist):
-			ZeroVector;
+	// 	const float3 collideeDir = (collideeDist > 0.0f)?
+	// 		(collideeVec / collideeDist):
+	// 		ZeroVector;
 
-		goalDotRight -= (collideeDir.dot(rightdir) * relativeDist * std::max(0.0f, collideeDir.dot(frontdir)));
-	}
-	#endif
+	// 	goalDotRight -= (collideeDir.dot(rightdir) * relativeDist * std::max(0.0f, collideeDir.dot(frontdir)));
+	// }
+	// #endif
 
 	const float3  yprInputLocks    = (XZVector * float(allowUnlockYawRoll || forceUnlockYawRoll)) + UpVector;
 	const float3  maxBodyAngles    = {0.0f, maxPitch, maxBank};
 	const float3  maxCtrlAngles    = {maxRudder, maxElevator, maxAileron};
 	const float3  prvCtrlAngles[2] = {{lastRudderPos[0], lastElevatorPos[0], lastAileronPos[0]}, {lastRudderPos[1], lastElevatorPos[1], lastAileronPos[1]}};
-	//const float3& curCtrlAngles    = GetControlSurfaceAngles(owner, lastCollidee,  pos, spd,  rightdir, updir, frontdir, goalDir2D,  yprInputLocks, maxBodyAngles, maxCtrlAngles, prvCtrlAngles,  groundHeight, wantedHeight,  goalDotRight, goalDotFront,  false && collisionState == COLLISION_DIRECT, false);
+	// const float3& curCtrlAngles    = GetControlSurfaceAngles(owner, lastCollidee,  pos, spd,  rightdir, updir, frontdir, goalDir2D,  yprInputLocks, maxBodyAngles, maxCtrlAngles, prvCtrlAngles,  goalDotRight, goalDotFront,  false && collisionState == COLLISION_DIRECT, false);
+	const float3& curCtrlAngles    = GetControlSurfaceAngles(owner, lastCollidee,  pos, spd,  rightdir, updir, frontdir, goalDir,  yprInputLocks, maxBodyAngles, maxCtrlAngles, prvCtrlAngles,  groundHeight, wantedHeight,  goalDotRight, goalDotFront,  false && collisionState == COLLISION_DIRECT, false);
 
-	//UpdateAirPhysics({curCtrlAngles, wantedThrottle}, owner->frontdir);
+
+	const float curSpeed = owner->speed.Length();
+	const float brakeDist = (0.5f * curSpeed * curSpeed) / decRate;
+	// const float goalDist = goalVec.Length() + 0.1f;
+	const float goalSpeed =
+		(maxSpeed          ) * (goalDist >  brakeDist) +
+		(curSpeed - decRate) * (goalDist <= brakeDist);
+
+	// if (goalDist > goalSpeed) {
+	// 	// update our velocity and heading so long as goal is still
+	// 	// further away than the distance we can cover in one frame
+	// 	// we must use a variable-size "dead zone" to avoid freezing
+	// 	// in mid-air or oscillation behavior at very close distances
+	// 	// NOTE:
+	// 	//   wantedSpeed is a vector, so even aircraft with turnRate=0
+	// 	//   are coincidentally able to reach any goal by side-strafing
+	// 	float3 wantedHeading = GetHeadingFromVector(goalVec.x, goalVec.z);
+	// 	float3 wantedSpeed = (goalVec / goalDist) * std::min(goalSpeed, maxWantedSpeed);
+	// 	wantedThrottle = wantedSpeed.Length();
+	// 	owner->SetSpeed(wantedThrottle);
+
+	// } else {
+	// 	// switch to hovering (if !CanLand()))
+	// 	if (!UnitIsBusy(owner)) {
+	// 		ExecuteStop();
+	// 	} else {
+	// 		wantedThrottle = 0;
+	// 	}
+	// }
+
+
+	UpdateAirPhysics({curCtrlAngles, wantedThrottle}, owner->frontdir);
 
 	return (allowUnlockYawRoll || forceUnlockYawRoll);
+}
+
+
+void StrafeSpaceMoveType::ExecuteStop()
+{
+	RECOIL_DETAILED_TRACY_ZONE;
+	//wantToStop = false;
+	//wantedThrottle = 0;
+
+	SetGoal(owner->pos);
+	owner->speed = ZeroVector;
+	//ClearLandingPos();
+	owner->script->StopMoving();
+
+
+	switch (spacecraftState) {
+		// case AIRCRAFT_TAKEOFF: {
+		// 	if (CanLand(UnitIsBusy(owner))) {
+		// 		SetState(AIRCRAFT_LANDING);
+		// 		// trick to land directly
+		// 		waitCounter = GAME_SPEED;
+		// 		break;
+		// 	}
+		// } // fall through
+		case SPACECRAFT_FLYING: {
+			// if (CanLand(UnitIsBusy(owner))) {
+			// 	SetState(SPACECRAFT_LANDING);
+			// } else {
+				SetState(SPACECRAFT_HOVERING);
+			//}
+		} break;
+
+		// case AIRCRAFT_LANDING: {
+		// 	if (!CanLand(UnitIsBusy(owner)))
+		// 		SetState(AIRCRAFT_HOVERING);
+
+		// } break;
+		// case AIRCRAFT_LANDED: {} break;
+		case SPACECRAFT_CRASHING: {} break;
+
+		case SPACECRAFT_HOVERING: {
+			// if (CanLand(UnitIsBusy(owner))) {
+			// 	// land immediately, otherwise keep hovering
+			// 	SetState(SPACECRAFT_LANDING);
+			// 	waitCounter = GAME_SPEED;
+			// }
+			SetGoal(owner->pos);
+			//wantedThrottle = 0;
+		} break;
+	}
 }
 
 
@@ -904,46 +1060,46 @@ static float GetVTOLAccelerationSign(float curHeight, float wtdHeight, float ver
 	return (Sign<float>(nxtHeight < tgtHeight));
 }
 
-void StrafeSpaceMoveType::UpdateTakeOff()
-{
-	RECOIL_DETAILED_TRACY_ZONE;
-	const float3& pos = owner->pos;
-	const float4& spd = owner->speed;
+// void StrafeSpaceMoveType::UpdateTakeOff()
+// {
+// 	RECOIL_DETAILED_TRACY_ZONE;
+// 	const float3& pos = owner->pos;
+// 	const float4& spd = owner->speed;
 
-	//wantedHeight = orgWantedHeight;
+// 	//wantedHeight = orgWantedHeight;
 
-	SyncedFloat3& rightdir = owner->rightdir;
-	SyncedFloat3& frontdir = owner->frontdir;
-	SyncedFloat3& updir    = owner->updir;
+// 	SyncedFloat3& rightdir = owner->rightdir;
+// 	SyncedFloat3& frontdir = owner->frontdir;
+// 	SyncedFloat3& updir    = owner->updir;
 
-	const float3 goalDir = (goalPos - pos).Normalize();
+// 	const float3 goalDir = (goalPos - pos).Normalize();
 
-	const float yawWeight = maxRudder * spd.y;
-	const float dirWeight = std::clamp(goalDir.dot(rightdir), -1.0f, 1.0f);
-	// this tends to alternate between -1 and +1 when goalDir and rightdir are ~orthogonal
-	// const float yawSign = Sign(goalDir.dot(rightdir));
-	//const float currentHeight = pos.y - amtGetGroundHeightFuncs[canSubmerge](pos.x, pos.z);
-	//const float minAccHeight = wantedHeight * 0.4f;
+// 	const float yawWeight = maxRudder * spd.y;
+// 	const float dirWeight = std::clamp(goalDir.dot(rightdir), -1.0f, 1.0f);
+// 	// this tends to alternate between -1 and +1 when goalDir and rightdir are ~orthogonal
+// 	// const float yawSign = Sign(goalDir.dot(rightdir));
+// 	//const float currentHeight = pos.y - amtGetGroundHeightFuncs[canSubmerge](pos.x, pos.z);
+// 	//const float minAccHeight = wantedHeight * 0.4f;
 
-	frontdir += (rightdir * dirWeight * yawWeight);
-	frontdir.Normalize();
-	rightdir = frontdir.cross(updir);
+// 	frontdir += (rightdir * dirWeight * yawWeight);
+// 	frontdir.Normalize();
+// 	rightdir = frontdir.cross(updir);
 
-	//owner->SetVelocity(spd + (UpVector * accRate * GetVTOLAccelerationSign(currentHeight, wantedHeight, spd.y)));
-	//owner->SetVelocity(spd + (owner->frontdir * accRate * (currentHeight > minAccHeight)));
+// 	//owner->SetVelocity(spd + (UpVector * accRate * GetVTOLAccelerationSign(currentHeight, wantedHeight, spd.y)));
+// 	//owner->SetVelocity(spd + (owner->frontdir * accRate * (currentHeight > minAccHeight)));
 
-	// initiate forward motion before reaching wantedHeight
-	// normally SPACECRAFT start taking off from the ground below wantedHeight,
-	// but state can also change to LANDING via StopMoving and then again to
-	// TAKEOFF (via StartMoving) while still in mid-air
-	//if (currentHeight > wantedHeight || spd.SqLength2D() >= Square(maxWantedSpeed * 0.8f))
-	//	SetState(SPACECRAFT_FLYING);
+// 	// initiate forward motion before reaching wantedHeight
+// 	// normally SPACECRAFT start taking off from the ground below wantedHeight,
+// 	// but state can also change to LANDING via StopMoving and then again to
+// 	// TAKEOFF (via StartMoving) while still in mid-air
+// 	//if (currentHeight > wantedHeight || spd.SqLength2D() >= Square(maxWantedSpeed * 0.8f))
+// 	//	SetState(SPACECRAFT_FLYING);
 
-	owner->SetVelocityAndSpeed(spd * invDrag);
-	owner->Move(spd, true);
-	owner->SetHeadingFromDirection();
-	owner->UpdateMidAndAimPos();
-}
+// 	owner->SetVelocityAndSpeed(spd * invDrag);
+// 	owner->Move(spd, true);
+// 	owner->SetHeadingFromDirection();
+// 	owner->UpdateMidAndAimPos();
+// }
 
 bool StrafeSpaceMoveType::UpdateAirPhysics(const float4& controlInputs, const float3& thrustVector)
 {
@@ -955,7 +1111,7 @@ bool StrafeSpaceMoveType::UpdateAirPhysics(const float4& controlInputs, const fl
 	SyncedFloat3& frontdir = owner->frontdir;
 	SyncedFloat3& updir    = owner->updir;
 
-	const float groundHeight = CGround::GetHeightAboveWater(pos.x, pos.z);
+	const float groundHeight = 0;//pos.y - 100; CGround::GetHeightAboveWater(pos.x, pos.z);
 	const float linearSpeed = spd.w;
 
 	const float   rudder = controlInputs.x;
@@ -977,7 +1133,7 @@ bool StrafeSpaceMoveType::UpdateAirPhysics(const float4& controlInputs, const fl
 
 	// apply gravity only when in the air
 	// unlike IRL, thrust points forward
-	owner->SetVelocity(spd + UpVector * (mapInfo->map.gravity * myGravity) * int((owner->midPos.y - owner->radius) > groundHeight));
+	//owner->SetVelocity(spd + UpVector * (mapInfo->map.gravity * myGravity) * int((owner->midPos.y - owner->radius) > groundHeight));
 	owner->SetVelocity(spd + (thrustVector * accRate * throttle));
 	owner->SetVelocity(spd * ((spacecraftState == SPACECRAFT_CRASHING)? crashDrag: invDrag));
 
@@ -991,19 +1147,19 @@ bool StrafeSpaceMoveType::UpdateAirPhysics(const float4& controlInputs, const fl
 			aileron  * maxAileron  * linearSpeed,
 		};
 		const float3 yprScales = {
-			#if 0
-			// do not want locks when crashing or during "special" maneuvers (Immelman, etc)
-			// when both pitch and roll are locked (e.g during a climbing turn), yawing also
-			// becomes impossible since yaw motion can cause |rightdir.y| to exceed maxBank
-			(math::fabs((((frontdir + rightdir * yprDeltas.x).Normalize()).cross(updir)).y) < maxBank), // yawing changes rightdir if pitched or banked
-			(math::fabs(frontdir.y + yprDeltas.y) < maxPitch), // pitching up (ypr.y=+1) increases frontdir.y
-			(math::fabs(rightdir.y - yprDeltas.z) < maxBank ), // rolling left (ypr.z=-1) increases rightdir.y
-			#endif
-			#if 0
-			1.0f,
-			(math::fabs(rightdir.y) < 0.1f || math::fabs(frontdir.y + yprDeltas.y) < math::fabs(frontdir.y)), // allow pitch when not banked
-			(math::fabs(frontdir.y) < 0.1f || math::fabs(rightdir.y - yprDeltas.z) < math::fabs(rightdir.y)), // allow roll when not pitched
-			#endif
+			// #if 0
+			// // do not want locks when crashing or during "special" maneuvers (Immelman, etc)
+			// // when both pitch and roll are locked (e.g during a climbing turn), yawing also
+			// // becomes impossible since yaw motion can cause |rightdir.y| to exceed maxBank
+			// (math::fabs((((frontdir + rightdir * yprDeltas.x).Normalize()).cross(updir)).y) < maxBank), // yawing changes rightdir if pitched or banked
+			// (math::fabs(frontdir.y + yprDeltas.y) < maxPitch), // pitching up (ypr.y=+1) increases frontdir.y
+			// (math::fabs(rightdir.y - yprDeltas.z) < maxBank ), // rolling left (ypr.z=-1) increases rightdir.y
+			// #endif
+			// #if 0
+			// 1.0f,
+			// (math::fabs(rightdir.y) < 0.1f || math::fabs(frontdir.y + yprDeltas.y) < math::fabs(frontdir.y)), // allow pitch when not banked
+			// (math::fabs(frontdir.y) < 0.1f || math::fabs(rightdir.y - yprDeltas.z) < math::fabs(rightdir.y)), // allow roll when not pitched
+			// #endif
 			1.0f,
 			1.0f,
 			1.0f,
@@ -1019,11 +1175,26 @@ bool StrafeSpaceMoveType::UpdateAirPhysics(const float4& controlInputs, const fl
 		owner->SetVelocity(spd * (1 - int(owner->beingBuilt && spacecraftState == SPACECRAFT_LANDED)));
 	}
 
-	if (nextPosInBounds)
+
+		{
+		const float3 deltaSpeed = thrustVector - spd;
+
+		// apply {acc,dec}eleration as wanted
+		const float deltaSpeedSqr = deltaSpeed.SqLength();
+		const float deltaSpeedRate = mix(accRate, decRate, deltaSpeed.dot(spd) < 0.0f);
+
+		if (deltaSpeedSqr < Square(deltaSpeedRate)) {
+			owner->SetVelocity(thrustVector);
+		} else {
+			owner->SetVelocity(spd + (deltaSpeed / math::sqrt(deltaSpeedSqr) * deltaSpeedRate));
+		}
+	}
+
+	//if (nextPosInBounds)
 		owner->Move(spd, true);
 
 	// prevent SPACECRAFT from gaining unlimited altitude
-	owner->Move(UpVector * (std::clamp(pos.y, groundHeight, readMap->GetCurrMaxHeight() + owner->unitDef->wantedHeight * 5.0f) - pos.y), true);
+	//owner->Move(UpVector * (std::clamp(pos.y, groundHeight, readMap->GetCurrMaxHeight() + owner->unitDef->wantedHeight * 5.0f) - pos.y), true);
 
 	// bounce away on ground collisions (including water surface)
 	// NOTE:
@@ -1035,42 +1206,56 @@ bool StrafeSpaceMoveType::UpdateAirPhysics(const float4& controlInputs, const fl
 	//   to start bouncing with ever-increasing amplitude while
 	//   stunned, so the same applies there
 	bool crashed = false;
-	if (modInfo.allowAircraftToHitGround) {
-		const bool groundContact = (groundHeight > (owner->midPos.y - owner->radius));
-		const bool handleContact = (spacecraftState != SPACECRAFT_LANDED && spacecraftState != SPACECRAFT_TAKEOFF);
+	// if (modInfo.allowAircraftToHitGround) {
+	// 	const bool groundContact = (groundHeight > (owner->midPos.y - owner->radius));
+	// 	const bool handleContact = (spacecraftState != SPACECRAFT_LANDED && spacecraftState != SPACECRAFT_TAKEOFF);
 
 
-		if (groundContact && handleContact) {
-			const float3  groundOffset = UpVector * (groundHeight - (owner->midPos.y - owner->radius) + 0.01f);
-			const float3& groundNormal = CGround::GetNormal(pos.x, pos.z);
+	// 	if (groundContact && handleContact) {
+	// 		const float3  groundOffset = UpVector * (groundHeight - (owner->midPos.y - owner->radius) + 0.01f);
+	// 		const float3& groundNormal = CGround::GetNormal(pos.x, pos.z);
 
-			const float impactSpeed = -spd.dot(groundNormal) * int(1 - owner->IsStunned());
+	// 		const float impactSpeed = -spd.dot(groundNormal) * int(1 - owner->IsStunned());
 
-			if (spacecraftState != SPACECRAFT_CRASHING)
-				// skip when crashing to explode a bit into the ground
-				owner->Move(groundOffset, true);
+	// 		if (spacecraftState != SPACECRAFT_CRASHING)
+	// 			// skip when crashing to explode a bit into the ground
+	// 			owner->Move(groundOffset, true);
 
-			if (impactSpeed > 0.0f) {
-				// fix for mantis #1355
-				// SPACECRAFT could get stuck in the ground and never recover (on takeoff
-				// near map edges) where their forward speed wasn't allowed to build up
-				// therefore add a vertical component help get off the ground if |speed|
-				// is below a certain threshold
-				if (spd.SqLength() > (0.09f * Square(owner->unitDef->speed))) {
-					owner->SetVelocity(spd * 0.95f);
-				} else {
-					owner->SetVelocity(spd + (UpVector * impactSpeed));
-				}
+	// 		if (impactSpeed > 0.0f) {
+	// 			// fix for mantis #1355
+	// 			// SPACECRAFT could get stuck in the ground and never recover (on takeoff
+	// 			// near map edges) where their forward speed wasn't allowed to build up
+	// 			// therefore add a vertical component help get off the ground if |speed|
+	// 			// is below a certain threshold
+	// 			if (spd.SqLength() > (0.09f * Square(owner->unitDef->speed))) {
+	// 				owner->SetVelocity(spd * 0.95f);
+	// 			} else {
+	// 				owner->SetVelocity(spd + (UpVector * impactSpeed));
+	// 			}
 
-				owner->SetVelocity(spd + (groundNormal * impactSpeed * 1.5f));
+	// 			owner->SetVelocity(spd + (groundNormal * impactSpeed * 1.5f));
 
-				updir = groundNormal - frontdir * 0.1f;
-				rightdir = frontdir.cross(updir.Normalize());
-				frontdir = updir.cross(rightdir.Normalize());
-			}
-			crashed = true;
-		}
-	}
+	// 			updir = groundNormal - frontdir * 0.1f;
+	// 			rightdir = frontdir.cross(updir.Normalize());
+	// 			frontdir = updir.cross(rightdir.Normalize());
+	// 		}
+	// 		crashed = true;
+	// 	}
+	// }
+
+	// {
+	// 	const float3 deltaSpeed = thrustVector - spd;
+
+	// 	// apply {acc,dec}eleration as wanted
+	// 	const float deltaSpeedSqr = deltaSpeed.SqLength();
+	// 	const float deltaSpeedRate = mix(accRate, decRate, deltaSpeed.dot(spd) < 0.0f);
+
+	// 	if (deltaSpeedSqr < Square(deltaSpeedRate)) {
+	// 		owner->SetVelocity(thrustVector);
+	// 	} else {
+	// 		owner->SetVelocity(spd + (deltaSpeed / math::sqrt(deltaSpeedSqr) * deltaSpeedRate));
+	// 	}
+	// }
 
 	frontdir.Normalize();
 	rightdir = frontdir.cross(updir);
@@ -1199,6 +1384,17 @@ void StrafeSpaceMoveType::SetState(ASpaceMoveType::SpacecraftMovementState newSt
 			// owner->Block();
 			owner->ClearPhysicalStateBit(CSolidObject::PSTATE_BIT_FLYING);
 			break;
+		case SPACECRAFT_HOVERING:
+			// FIXME already inform commandAI in SPACECRAFT_LANDING!
+			// owner->commandAI->StopMove();
+			// owner->Deactivate();
+			// // missing? not really
+			// // owner->Block();
+			// owner->ClearPhysicalStateBit(CSolidObject::PSTATE_BIT_FLYING);
+			//wantedSpeed = ZeroVector;
+			// owner->commandAI->StopMove();
+			//ISSUE here we need to begin to align to the point
+			break;
 
 		default:
 			break;
@@ -1270,16 +1466,21 @@ void StrafeSpaceMoveType::StartMoving(float3 pos, float goalRadius, float speed)
 	RECOIL_DETAILED_TRACY_ZONE;
 	SetWantedMaxSpeed(speed);
 
-	if (spacecraftState == SPACECRAFT_LANDED || spacecraftState == SPACECRAFT_LANDING)
-		SetState(SPACECRAFT_TAKEOFF);
+	// if (spacecraftState == SPACECRAFT_LANDED || spacecraftState == SPACECRAFT_LANDING)
+	// 	SetState(SPACECRAFT_TAKEOFF);
 
 	SetGoal(pos);
+
+	SetState(SPACECRAFT_FLYING);
 }
 
 void StrafeSpaceMoveType::StopMoving(bool callScript, bool hardStop, bool)
 {
+	std::cout << "StopMoving\n";
 	RECOIL_DETAILED_TRACY_ZONE;
-	SetGoal(owner->pos);
+	wantToStop = true;
+
+	// SetGoal(owner->pos);
 	//ClearLandingPos();
 	SetWantedMaxSpeed(0.0f);
 
@@ -1287,7 +1488,7 @@ void StrafeSpaceMoveType::StopMoving(bool callScript, bool hardStop, bool)
 		return;
 
 	//if (dontLand || !autoLand) {
-	SetState(SPACECRAFT_FLYING);
+	// SetState(SPACECRAFT_HOVERING);
 	//	return;
 	//}
 
@@ -1296,18 +1497,18 @@ void StrafeSpaceMoveType::StopMoving(bool callScript, bool hardStop, bool)
 
 
 
-void StrafeSpaceMoveType::Takeoff()
-{
-	RECOIL_DETAILED_TRACY_ZONE;
-	if (spacecraftState != ASpaceMoveType::SPACECRAFT_FLYING) {
-		if (spacecraftState == ASpaceMoveType::SPACECRAFT_LANDED) {
-			SetState(ASpaceMoveType::SPACECRAFT_TAKEOFF);
-		}
-		if (spacecraftState == ASpaceMoveType::SPACECRAFT_LANDING) {
-			SetState(ASpaceMoveType::SPACECRAFT_FLYING);
-		}
-	}
-}
+// void StrafeSpaceMoveType::Takeoff()
+// {
+// 	RECOIL_DETAILED_TRACY_ZONE;
+// 	if (spacecraftState != ASpaceMoveType::SPACECRAFT_FLYING) {
+// 		if (spacecraftState == ASpaceMoveType::SPACECRAFT_LANDED) {
+// 			SetState(ASpaceMoveType::SPACECRAFT_TAKEOFF);
+// 		}
+// 		if (spacecraftState == ASpaceMoveType::SPACECRAFT_LANDING) {
+// 			SetState(ASpaceMoveType::SPACECRAFT_FLYING);
+// 		}
+// 	}
+// }
 
 
 
@@ -1329,7 +1530,7 @@ bool StrafeSpaceMoveType::SetMemberValue(unsigned int memberHash, void* memberVa
 		&maneuverBlockTime,
 	};
 	float* floatMemberPtrs[] = {
-		//&wantedHeight,
+		&wantedHeight,
 		&turnRadius,
 
 		&accRate, // hash("accRate") case

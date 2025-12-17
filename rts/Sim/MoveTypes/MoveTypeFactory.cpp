@@ -42,9 +42,8 @@ AMoveType* MoveTypeFactory::GetMoveType(CUnit* unit, const UnitDef* ud) {
 
 	if (ud->IsSpaceUnit()) {
 		if(ud->IsSpaceStrafingUnit())
-			return (new (unit->amtMemBuffer) HoverSpaceMoveType(unit)); //Need to add StrafeSpaceMoveType here enventually ISSUE - Actually I might not, HoverSpaceMoveType might be enough?
+			return (new (unit->amtMemBuffer) StrafeSpaceMoveType(unit)); //Need to add StrafeSpaceMoveType here enventually ISSUE - Actually I might not, HoverSpaceMoveType might be enough?
 		else
-		
 			return (new (unit->amtMemBuffer) HoverSpaceMoveType(unit));
 	}
 

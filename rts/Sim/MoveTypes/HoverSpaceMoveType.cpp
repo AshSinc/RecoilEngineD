@@ -743,7 +743,6 @@ bool HoverSpaceMoveType::UpdateAirPhysics()
 		const float deltaSpeedRate = mix(accRate, decRate, deltaSpeed.dot(spd) < 0.0f);
 
 		if (deltaSpeedSqr < Square(deltaSpeedRate)) {
-			//std::cout << "Here1" << "\n";
 			owner->SetVelocity(wantedSpeed);
 		} else {
 			owner->SetVelocity(spd + (deltaSpeed / math::sqrt(deltaSpeedSqr) * deltaSpeedRate));
@@ -788,6 +787,8 @@ bool HoverSpaceMoveType::Update()
 	const float4 lastSpd = owner->speed;
 
 	ASpaceMoveType::Update();
+
+	if (owner->GetTransporter() != nullptr) return false;
 
 	if ((owner->IsStunned() && !owner->IsCrashing()) || owner->beingBuilt) {
 		wantedSpeed = ZeroVector;
@@ -943,7 +944,7 @@ bool HoverSpaceMoveType::HandleCollisions(bool checkCollisions)
 					}
 				}
 			}
-
+			
 			// update speed.w
 			owner->SetSpeed(owner->speed);
 		}
