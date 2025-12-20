@@ -32,6 +32,8 @@
 #include "System/Misc/TracyDefs.h"
 #include "System/EventHandler.h"
 
+#include "Camera/PivotController.h" // Custom pivot cam
+
 static std::string strformat(const char* fmt, ...)
 {
 	char buf[256];
@@ -52,7 +54,8 @@ CONFIG(int, CamMode)
 		(int)CCameraHandler::CAMERA_MODE_SPRING,
 		(int)CCameraHandler::CAMERA_MODE_ROTOVERHEAD,
 		(int)CCameraHandler::CAMERA_MODE_FREE,
-		(int)CCameraHandler::CAMERA_MODE_OVERVIEW
+		(int)CCameraHandler::CAMERA_MODE_OVERVIEW,
+		(int)CCameraHandler::CAMERA_MODE_PIVOT
 	))
 	.minimumValue(0)
 	.maximumValue(CCameraHandler::CAMERA_MODE_DUMMY - 1);
@@ -209,6 +212,7 @@ void CCameraHandler::InitControllers()
 	static_assert(sizeof(       CFreeController) <= sizeof(camControllerMem[CAMERA_MODE_FREE       ]), "");
 	static_assert(sizeof(   COverviewController) <= sizeof(camControllerMem[CAMERA_MODE_OVERVIEW   ]), "");
 	static_assert(sizeof(      CDollyController) <= sizeof(camControllerMem[CAMERA_MODE_DOLLY      ]), "");
+	static_assert(sizeof(CPivotController) <= sizeof(camControllerMem[CAMERA_MODE_PIVOT]), "");
 
 	// FPS camera must always be the first one in the list
 	camControllers[CAMERA_MODE_FIRSTPERSON] = new (camControllerMem[CAMERA_MODE_FIRSTPERSON])         CFPSController();
@@ -218,6 +222,8 @@ void CCameraHandler::InitControllers()
 	camControllers[CAMERA_MODE_FREE       ] = new (camControllerMem[CAMERA_MODE_FREE       ])        CFreeController();
 	camControllers[CAMERA_MODE_OVERVIEW   ] = new (camControllerMem[CAMERA_MODE_OVERVIEW   ])    COverviewController();
 	camControllers[CAMERA_MODE_DOLLY      ] = new (camControllerMem[CAMERA_MODE_DOLLY      ])    CDollyController();
+	camControllers[CAMERA_MODE_PIVOT] = new (camControllerMem[CAMERA_MODE_PIVOT]) CPivotController();
+
 }
 
 void CCameraHandler::KillControllers()

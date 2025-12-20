@@ -2896,6 +2896,7 @@ int LuaUnsyncedRead::GetCameraState(lua_State* L)
 
 		switch (camHandler->GetCurrentControllerNum()) {
 		case CCameraHandler::CAMERA_MODE_FIRSTPERSON:
+		case CCameraHandler::CAMERA_MODE_PIVOT:
 		case CCameraHandler::CAMERA_MODE_ROTOVERHEAD: // happens to have the same set of values as FPS
 			lua_pushnumber(L, camState["oldHeight"]);
 			return 1 + 1;

@@ -9,6 +9,7 @@
 
 #include "Camera/CameraController.h"
 #include "Game/Camera/DollyController.h"
+#include "Game/Camera/PivotController.h"
 #include "System/UnorderedMap.hpp"
 #include "Console.h"
 
@@ -29,7 +30,8 @@ public:
 		CAMERA_MODE_OVERVIEW    = 5,
 		CAMERA_MODE_DOLLY       = 6,
 		CAMERA_MODE_DUMMY       = 7,
-		CAMERA_MODE_LAST        = 8,
+		CAMERA_MODE_PIVOT       = 8,
+		CAMERA_MODE_LAST        = 9,
 	};
 	enum {
 		CAMERA_TRANSITION_MODE_EXP_DECAY = 0,
@@ -134,6 +136,8 @@ public:
 	      CCameraController& GetCurrentController()       { return *(camControllers[currCamCtrlNum]); }
 
 	CDollyController& GetDollyController() { return *(static_cast<CDollyController*>(camControllers[CAMERA_MODE_DOLLY])); }
+
+	CPivotController& GetPivotController() { return *(static_cast<CPivotController*>(camControllers[CAMERA_MODE_PIVOT])); }
 
 	const std::array<CCameraController*, CAMERA_MODE_LAST>& GetControllers() const { return camControllers; }
 

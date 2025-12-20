@@ -159,6 +159,8 @@ bool LuaUnsyncedCtrl::PushEntries(lua_State* L)
 	REGISTER_LUA_CFUNC(SetDollyCameraLookUnit);
 	REGISTER_LUA_CFUNC(SetDollyCameraRelativeMode);
 
+	REGISTER_LUA_CFUNC(SetPivotCameraPivotPoint);
+
 	REGISTER_LUA_CFUNC(DeselectUnit);
 	REGISTER_LUA_CFUNC(DeselectUnitMap);
 	REGISTER_LUA_CFUNC(DeselectUnitArray);
@@ -1425,6 +1427,24 @@ int LuaUnsyncedCtrl::SetDollyCameraRelativeMode(lua_State* L)
 	int mode = luaL_checkint(L, 1);
 
 	camHandler->GetDollyController().SetRelativeMode(mode);
+
+	return 0;
+}
+
+/*** Sets Dolly Camera movement curve to world relative or look target relative
+ *
+ * @function Spring.SetDollyCameraRelativeMode
+ * @param relativeMode number `1` world, `2` look target
+ * @return nil
+ */
+
+int LuaUnsyncedCtrl::SetPivotCameraPivotPoint(lua_State* L)
+{
+	float x = luaL_checkfloat(L, 1);
+	float y = luaL_checkfloat(L, 2);
+	float z = luaL_checkfloat(L, 3);
+	
+	camHandler->GetPivotController().SetPivot(x,y,z);
 
 	return 0;
 }

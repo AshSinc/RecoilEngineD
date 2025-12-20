@@ -11,6 +11,7 @@ make_global_var(sources_engine_Game
 		"${CMAKE_CURRENT_SOURCE_DIR}/Camera/OverheadController.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/Camera/OverviewController.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/Camera/RotOverheadController.cpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/Camera/PivotController.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/Camera/SpringController.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/Camera/DollyController.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/CameraHandler.cpp"
