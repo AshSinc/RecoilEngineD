@@ -6,49 +6,50 @@
 #include "Game/Camera.h"
 #include "Map/ReadMap.h"
 #include "Rendering/GlobalRendering.h"
-#include "System/SpringMath.h"
 #include "System/Config/ConfigHandler.h"
 #include "System/Log/ILog.h"
 #include "Game/CameraHandler.h"
 
 #include "System/Misc/TracyDefs.h"
 
-CONFIG(float, RotOverheadMouseScale).defaultValue(0.01f);
-CONFIG(int, RotOverheadScrollSpeed).defaultValue(1);
-CONFIG(bool, RotOverheadEnabled).defaultValue(true).headlessValue(false);
-CONFIG(float, RotOverheadFOV).defaultValue(45.0f);
-CONFIG(bool, RotOverheadClampMap).defaultValue(true).headlessValue(true);
+CONFIG(float, PivotCamScrollSpeed).defaultValue(0.20f);
+CONFIG(bool, PivotCamEnabled).defaultValue(true).headlessValue(false);
+CONFIG(float, PivotCamFOV).defaultValue(80.0f);
+CONFIG(bool, PivotCamRotateBelowPlane).defaultValue(true);
+CONFIG(float, PivotCamDeceleration).defaultValue(0.95f);
+CONFIG(float, PivotCamChangeSpeed).defaultValue(0.005f);
+CONFIG(float, PivotCamEdgeMoveSpeed).defaultValue(1.0f);
+CONFIG(float, PivotCamMouseMoveSpeed).defaultValue(1.0f);
+CONFIG(float, PivotCamZoomMin).defaultValue(200.0f);
+CONFIG(float, PivotCamZoomMax).defaultValue(20000.0f);
 
-
-CPivotController::CPivotController(): rot(2.677f, 0.0f, 0.0f)
+CPivotController::CPivotController()
 {
-	// TODO - Need to integrate with existing config vars or create new ones if needed
 	RECOIL_DETAILED_TRACY_ZONE;
-	// mouseScale  = configHandler->GetFloat("RotOverheadMouseScale");
-	// scrollSpeed = configHandler->GetInt("RotOverheadScrollSpeed") * 0.1f;
-	// enabled     = configHandler->GetBool("RotOverheadEnabled");
-	// fov         = configHandler->GetFloat("RotOverheadFOV");
-	// clampToMap = configHandler->GetBool("RotOverheadClampMap");
-	scrollSpeed = 10;
-	enabled     = true;
-	fov         = 80;
+	scrollSpeed = configHandler->GetFloat("PivotCamScrollSpeed");
+	enabled     = configHandler->GetBool("PivotCamEnabled");
+	fov         = configHandler->GetFloat("PivotCamFOV");
+	rotateBelowPlane = configHandler->GetFloat("PivotCamRotateBelowPlane");
+	deceleration = configHandler->GetFloat("PivotCamDeceleration");
+	pivotChangeSpeed = configHandler->GetFloat("PivotCamChangeSpeed");
+	edgeMoveSpeed = configHandler->GetFloat("PivotCamEdgeMoveSpeed");
+	mouseMoveSpeed = configHandler->GetFloat("PivotCamMouseMoveSpeed");
+	zoomMin = configHandler->GetFloat("PivotCamZoomMin");
+	zoomMax = configHandler->GetFloat("PivotCamZoomMax");
+
+	//init
 	curAzimuthAngle = 0;
 	curInclinationAngle = 90 * math::PI / 180;
 	targetZoomLevel = 0;
-	curZoomLevel = CLAMP_ZOOM_MAX/2;
+	curZoomLevel = zoomMax/2;
 	curPivot = float3(0,0,0);
+	if(!rotateBelowPlane)
+		CLAMP_PITCH_MIN = math::PI/2;
 }
 
 void CPivotController::KeyMove(float3 move)
 {
 	RECOIL_DETAILED_TRACY_ZONE;
-
-	const float qy = (move.y == 0.0f) ? 0.0f : (move.y > 0.0f ? 1.0f : -1.0f);
-	const float qx = (move.x == 0.0f) ? 0.0f : (move.x > 0.0f ? 1.0f : -1.0f);
-
-	float ZoomDistance = 1;
-	const float speed  = 1 * ZoomDistance;
-	const float aspeed = 1 * ZoomDistance;
 
 	avel.y += move.y * math::PI / 180;
 	avel.x += move.x * math::PI / 180;
@@ -57,21 +58,19 @@ void CPivotController::KeyMove(float3 move)
 void CPivotController::MouseMove(float3 move)
 {
 	RECOIL_DETAILED_TRACY_ZONE;
-	KeyMove(move * 0.001f);
+	KeyMove(move * 0.001f * mouseMoveSpeed);
 }
-
 
 void CPivotController::ScreenEdgeMove(float3 move)
 {
 	RECOIL_DETAILED_TRACY_ZONE;
-	KeyMove(move);
+	KeyMove(move * edgeMoveSpeed);
 }
-
 
 void CPivotController::MouseWheelMove(float move, const float3& newDir)
 {
 	RECOIL_DETAILED_TRACY_ZONE;
-	targetZoomLevel += move * 0.25f;
+	targetZoomLevel += move * scrollSpeed;
 }
 
 void CPivotController::Update()
@@ -79,52 +78,44 @@ void CPivotController::Update()
 	RECOIL_DETAILED_TRACY_ZONE;
 	const float ft = globalRendering->lastFrameTime;
 
+	//if pivot has changed slowly update current pivot
 	if (curPivot != pivot)
-	{
-		curPivot += (pivot - curPivot) * PIVOT_CHANGE_SPEED *ft;
-	}
+		curPivot += (pivot - curPivot) * pivotChangeSpeed * ft;
 
-	float scale = 1;
-	float r = curZoomLevel + (targetZoomLevel * ft);
-	r = std::clamp(r, CLAMP_ZOOM_MIN, CLAMP_ZOOM_MAX);
+	//smooth zoom level
+	float radius = curZoomLevel + (targetZoomLevel * ft);
+	radius = std::clamp(radius, zoomMin, zoomMax);
 
-	float s = (curAzimuthAngle + (avel.x * ft * scale));
-	float t = (curInclinationAngle + (avel.y * ft * scale));
-	t = std::clamp(t, CLAMP_PITCH_MIN, CLAMP_PITCH_MAX);
+	//smooth azimuth and inclination angles
+	float azimuth = (curAzimuthAngle + (avel.x * ft));
+	float inclination = (curInclinationAngle + (avel.y * ft));
+	inclination = std::clamp(inclination, CLAMP_PITCH_MIN, CLAMP_PITCH_MAX);
 
-	if(t > math::PI)
-	{
-		t = math::PI;
-	}
-	else if (t < 0) {
-		t = 0;
-	}
-	if(s > 2*math::PI)
-	{
-		s -= 2*math::PI;
-	}
-	else if (s < 0) {
-		s += 2*math::PI;
-	}
+	//keepp azimuth in range of 0 to 2*PI
+	if(azimuth > 2*math::PI)
+		azimuth -= 2*math::PI;
+	else if (azimuth < 0)
+		azimuth += 2*math::PI;
 
-	float x= r * sin(t) * cos(s);
-	float z= r * sin(t) * sin(s);
-	float y= r * cos(t);
+	//calculate point on sphere given azimuth and inclination 
+	float x = radius * sin(inclination) * cos(azimuth);
+	float z = radius * sin(inclination) * sin(azimuth);
+	float y = radius * cos(inclination);
 
+	//update postion and rotation
 	pos = float3(x,y,z) + curPivot;
-
 	camera->SetDir((curPivot - pos).SafeANormalize());
 	rot = camera->GetRot();
 	dir = camera->GetDir();
 
-	float AngularDecel = 0.95;
+	//decelerate motion for next loop
+	avel *= deceleration;
+	targetZoomLevel *= deceleration;
 
-	avel *= AngularDecel;
-	targetZoomLevel *= AngularDecel;
-
-	curInclinationAngle = t;
-	curAzimuthAngle = s;
-	curZoomLevel = r;
+	//update vars
+	curInclinationAngle = inclination;
+	curAzimuthAngle = azimuth;
+	curZoomLevel = radius;
 }
 
 void CPivotController::SetPos(const float3& newPos)
@@ -146,7 +137,7 @@ void CPivotController::SwitchTo(const CCameraController* oldCam, const bool show
 {
 	RECOIL_DETAILED_TRACY_ZONE;
 	if (showText) {
-		LOG("Switching to Rotatable overhead camera");
+		LOG("Switching to Pivot camera");
 	}
 	float3 newPos = oldCam->SwitchFrom();
 	if (oldCam->GetName() == "ov") {
@@ -157,13 +148,6 @@ void CPivotController::SwitchTo(const CCameraController* oldCam, const bool show
 	pos = newPos;
 	rot = oldCam->GetRot();
 }
-
-void CPivotController::SetPivot(float x, float y, float z) 
-{
-	this->pivot = float3(x,y,z);
-
-}
-
 
 void CPivotController::GetState(StateMap& sm) const
 {

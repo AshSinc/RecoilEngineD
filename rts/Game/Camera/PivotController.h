@@ -34,29 +34,35 @@ public:
 
 	void Update();
 
-	void SetPivot(float x, float y, float z); //added call from lua
-
+	void SetPivot(float x, float y, float z) {this->pivot = float3(x,y,z);}; //called with Spring.SetPivotCameraPivotPoint(x, y, z) to update pivot point
+	
 private:
 	float3 rot;
 
 	float CLAMP_PITCH_MIN = math::PI * 0.1;
 	float CLAMP_PITCH_MAX = math::PI * 0.9;
 
-	float CLAMP_ZOOM_MIN = 100;
-	float CLAMP_ZOOM_MAX = 20000;
+	float zoomMin;
+	float zoomMax;
 
 	float3 pivot;
 	float3 curPivot;
 
-	float PIVOT_CHANGE_SPEED = 0.005;
+	float pivotChangeSpeed;
+	float edgeMoveSpeed;
+	float mouseMoveSpeed;
 
 	float targetZoomLevel;
-	float curZoomLevel; // current zoom-out distance
+	float curZoomLevel;
 
 	float curAzimuthAngle;
 	float curInclinationAngle;
 
 	float3 avel;
+
+	bool rotateBelowPlane;
+
+	float deceleration;
 };
 
 #endif // _PIVOT_CONTROLLER_H
