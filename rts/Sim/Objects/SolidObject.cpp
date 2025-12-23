@@ -103,9 +103,9 @@ void CSolidObject::UpdatePhysicalState(float eps)
 {
 	RECOIL_DETAILED_TRACY_ZONE;
 	const float waterLevel = CGround::GetWaterLevel(pos.x, pos.z);
-	const float groundHeight = CGround::GetHeightReal(pos.x, pos.z);
+	// const float groundHeight = CGround::GetHeightReal(pos.x, pos.z);
 	// Get height of whichever surface is higher between ground and water
-	const float topSurfaceHeight = std::max(groundHeight, waterLevel);
+	// const float topSurfaceHeight = std::max(groundHeight, waterLevel);
 
 	unsigned int ps = physicalState;
 
@@ -121,14 +121,17 @@ void CSolidObject::UpdatePhysicalState(float eps)
 	//   the height property is used for much fewer purposes
 	//   than radius, so less reliable for determining state
 	#define MASK_NOAIR (PSTATE_BIT_ONGROUND | PSTATE_BIT_INWATER | PSTATE_BIT_UNDERWATER | PSTATE_BIT_UNDERGROUND)
-	ps |= (PSTATE_BIT_ONGROUND    * ((   pos.y -         groundHeight) <=  eps));
+	// ps |= (PSTATE_BIT_ONGROUND    * ((   pos.y -         groundHeight) <=  eps));
+	ps |= (PSTATE_BIT_ONGROUND    * (   false));
 	ps |= (PSTATE_BIT_INWATER     * ((   pos.y             ) <= waterLevel));
 //	ps |= (PSTATE_BIT_UNDERWATER  * ((   pos.y +     height) <  0.0f));
 //	ps |= (PSTATE_BIT_UNDERGROUND * ((   pos.y +     height) <    groundHeight));
 	ps |= (PSTATE_BIT_UNDERWATER  * ((midPos.y +     radius) <  waterLevel));
-	ps |= (PSTATE_BIT_UNDERGROUND * ((midPos.y +     radius) <    groundHeight));
-	ps |= (PSTATE_BIT_INAIR       * ((   pos.y -         topSurfaceHeight) >   eps));
-	ps |= (PSTATE_BIT_INAIR       * ((    ps   & MASK_NOAIR) ==    0));
+	// ps |= (PSTATE_BIT_UNDERGROUND * ((midPos.y +     radius) <    groundHeight));
+	// ps |= (PSTATE_BIT_INAIR       * ((   pos.y -         topSurfaceHeight) >   eps));
+	ps |= (PSTATE_BIT_UNDERGROUND * (false));
+	ps |= (PSTATE_BIT_INAIR       * (true));
+	ps |= (PSTATE_BIT_INAIR       * (true));
 	#undef MASK_NOAIR
 
 	physicalState = static_cast<PhysicalState>(ps);
@@ -239,10 +242,10 @@ void CSolidObject::Block()
 	UnBlock();
 
 	// only block when `touching` the ground
-	if (FootPrintOnGround()) {
-		groundBlockingObjectMap.AddGroundBlockingObject(this);
-		assert(IsBlocking());
-	}
+	// if (FootPrintOnGround()) {
+	// 	groundBlockingObjectMap.AddGroundBlockingObject(this);
+	// 	assert(IsBlocking());
+	// }
 }
 
 bool CSolidObject::FootPrintOnGround() const {
@@ -381,7 +384,7 @@ float3 CSolidObject::GetDragAccelerationVec(float atmosphericDensity, float wate
 float3 CSolidObject::GetWantedUpDir(bool useGroundNormal, bool useObjectNormal, float dirSmoothing) const
 {
 	RECOIL_DETAILED_TRACY_ZONE;
-	const float3 groundUp = CGround::GetSmoothNormal(pos.x, pos.z);
+	const float3 groundUp = float3(0,1,0);//CGround::GetSmoothNormal(pos.x, pos.z);
 	const float3 curUpDir = float3{updir};
 	const float3 objectUp = mix(UpVector, curUpDir, useObjectNormal);
 	const float3 targetUp = mix(objectUp, groundUp, useGroundNormal);

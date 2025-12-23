@@ -501,8 +501,8 @@ void CLosMap::LosAdd(SLosInstance* li) const
 	const SRectangle fullRect(0, 0, size.x, size.y);
 	const SRectangle safeRect(li->radius, li->radius, size.x - li->radius, size.y - li->radius);
 
-	if (fullRect.Inside(li->basePos) && li->baseHeight <= ctrHeightMap[MAP_SQUARE_FULLRES(li->basePos)])
-		return;
+	// if (fullRect.Inside(li->basePos) && li->baseHeight <= ctrHeightMap[MAP_SQUARE_FULLRES(li->basePos)])
+	// 	return;
 
 	// add all squares within the instance's sight radius
 	if (safeRect.Inside(li->basePos)) {

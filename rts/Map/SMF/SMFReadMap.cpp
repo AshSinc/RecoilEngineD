@@ -82,24 +82,24 @@ CSMFReadMap::CSMFReadMap(const std::string& mapName): CEventClient("[CSMFReadMap
 	haveSplatNormalDistribTexture &= !mapInfo->smf.splatDistrTexName.empty();
 
 	ParseHeader();
-	LoadHeightMap();
+	//LoadHeightMap();
 	CReadMap::Initialize();
 
-	ConfigureTexAnisotropyLevels();
-	{
-		auto lock = CLoadLock::GetUniqueLock();
+	// ConfigureTexAnisotropyLevels();
+	// {
+	// 	auto lock = CLoadLock::GetUniqueLock();
 
-		LoadMinimap();
+	// 	LoadMinimap();
 
-		CreateSpecularTex();
-		CreateSplatDetailTextures();
-		CreateGrassTex();
-		CreateDetailTex();
-		CreateShadingTex();
-		CreateNormalTex();
-		CreateHeightMapTex();
-		CreateShadingGL();
-	}
+	// 	CreateSpecularTex();
+	// 	CreateSplatDetailTextures();
+	// 	CreateGrassTex();
+	// 	CreateDetailTex();
+	// 	CreateShadingTex();
+	// 	CreateNormalTex();
+	// 	CreateHeightMapTex();
+	// 	CreateShadingGL();
+	// }
 
 	mapFile.ReadFeatureInfo();
 }
@@ -681,7 +681,7 @@ void CSMFReadMap::UpdateFaceNormalsUnsynced(const SRectangle& update)
 void CSMFReadMap::UpdateShadingTexture()
 {
 	SRectangle update { 0, 0, mapDims.mapx, mapDims.mapy };
-	UpdateVisNormalsAndShadingTexture(update);
+	// UpdateVisNormalsAndShadingTexture(update);
 }
 
 void CSMFReadMap::UpdateVisNormalsAndShadingTexture(const SRectangle& update)

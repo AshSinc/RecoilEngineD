@@ -14,11 +14,11 @@ public:
 	MapDimensions()
 	{
 		// set in SMFReadMap::ParseHeader
-		mapx   = 0;
+		mapx   = 4096;
 		mapxm1 = 0;
 		mapxp1 = 0;
 
-		mapy   = 0;
+		mapy   = 4096;
 		mapym1 = 0;
 		mapyp1 = 0;
 

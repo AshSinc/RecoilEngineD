@@ -7,7 +7,6 @@
 #include "Map/MapInfo.h"
 #include "Sim/Misc/GeometricObjects.h"
 #include "Sim/Misc/GlobalSynced.h"
-#include "Sim/Misc/GroundBlockingObjectMap.h"
 #include "Sim/Misc/QuadField.h"
 #include "Sim/Misc/ModInfo.h"
 #include "Sim/Units/Scripts/UnitScript.h"

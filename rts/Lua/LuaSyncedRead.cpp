@@ -7638,12 +7638,12 @@ int LuaSyncedRead::IsPosInMap(lua_State* L)
 	const float mapX = mapDims.mapx * SQUARE_SIZE;
 	const float mapZ = mapDims.mapy * SQUARE_SIZE;
 
-	const bool inMap
-		=  x >= 0
-		&& z >= 0
-		&& x <= mapX
-		&& z <= mapZ
-	;
+	const bool inMap = true;
+	// 	=  x >= 0
+	// 	&& z >= 0
+	// 	&& x <= mapX
+	// 	&& z <= mapZ
+	// ;
 
 	/* Currently, the engine does not support limiting
 	 * the active play area natively, but it would be
@@ -7676,7 +7676,7 @@ int LuaSyncedRead::GetGroundHeight(lua_State* L)
 {
 	const float x = luaL_checkfloat(L, 1);
 	const float z = luaL_checkfloat(L, 2);
-	lua_pushnumber(L, CGround::GetHeightReal(x, z, CLuaHandle::GetHandleSynced(L)));
+	// lua_pushnumber(L, CGround::GetHeightReal(x, z, CLuaHandle::GetHandleSynced(L)));
 	return 1;
 }
 
@@ -7691,7 +7691,7 @@ int LuaSyncedRead::GetGroundHeight(lua_State* L)
  */
 int LuaSyncedRead::GetWaterPlaneLevel(lua_State* L)
 {
-	lua_pushnumber(L, CGround::GetWaterPlaneLevel());
+	// lua_pushnumber(L, CGround::GetWaterPlaneLevel());
 	return 1;
 }
 
@@ -7948,7 +7948,7 @@ int LuaSyncedRead::GetSmoothMeshHeight(lua_State* L)
 	const float x = luaL_checkfloat(L, 1);
 	const float z = luaL_checkfloat(L, 2);
 
-	lua_pushnumber(L, smoothGround.GetHeight(x, z));
+	// lua_pushnumber(L, smoothGround.GetHeight(x, z));
 	return 1;
 }
 

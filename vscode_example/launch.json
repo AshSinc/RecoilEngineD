@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "lldb",
+            "request": "launch",
+            "args": ["--isolation", "--write-dir", "~/Projects/Recoil-G/"],
+            "program": "${workspaceFolder}/build-linux/install/spring",
+            "cwd": "${workspaceRoot}",
+            "sourceMap": {
+                "/build/src/rts": "${workspaceFolder}/rts"
+            }
+        }
+    ]
+}
+
+//For debug, install CodeLLDB extension. Compile with below command
+//docker-build-v2/build.sh linux   -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_FLAGS="-g -O0 -gdwarf-4"

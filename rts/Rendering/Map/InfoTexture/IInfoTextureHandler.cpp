@@ -22,7 +22,8 @@ void IInfoTextureHandler::Create()
 #ifdef HEADLESS
 		infoTextureHandler = std::make_unique<CNullInfoTextureHandler>();
 #else
-		infoTextureHandler = std::make_unique<CInfoTextureHandler>();
+		// infoTextureHandler = std::make_unique<CInfoTextureHandler>();
+		infoTextureHandler = std::make_unique<CNullInfoTextureHandler>();
 #endif
 	} catch (const opengl_error& glerr) {
 		infoTextureHandler = nullptr;

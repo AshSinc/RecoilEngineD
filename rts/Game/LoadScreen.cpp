@@ -109,6 +109,7 @@ bool CLoadScreen::Init()
 	clientNet->KeepUpdating(true);
 
 	netHeartbeatThread = spring::thread(Threading::CreateNewThread(std::bind(&CNetProtocol::UpdateLoop, clientNet)));
+	// mapFileName = "none coz we deleted";
 	game = new CGame(mapFileName, modFileName, saveFile);
 
 	CglFont::sync.SetThreadSafety(mtLoading);
@@ -143,6 +144,7 @@ bool CLoadScreen::Init()
 		return true;
 
 	LOG("[LoadScreen::%s] single-threaded", __func__);
+	// mapFileName = "none because we deleted it!";
 	game->Load(mapFileName);
 	return false;
 }
@@ -178,19 +180,32 @@ static void FinishedLoading()
 	if (gu->globalQuit)
 		return;
 
+	std::cout << "FinishedLoading\n";
+
 	// send our playername to the server to indicate we finished loading
 	const CPlayer* p = playerHandler.Player(gu->myPlayerNum);
 
+	std::cout << "FinishedLoading1\n";
+
+
 	clientNet->Send(CBaseNetProtocol::Get().SendPlayerName(gu->myPlayerNum, p->name));
 	#ifdef SYNCCHECK
+	std::cout << "FinishedLoading2\n";
+
 	clientNet->Send(CBaseNetProtocol::Get().SendPathCheckSum(gu->myPlayerNum, pathManager->GetPathCheckSum()));
+	std::cout << "FinishedLoading3\n";
+
 	#endif
 	mouse->ShowMouse();
+
+	std::cout << "FinishedLoading4\n";
 
 	#if !defined(HEADLESS) && !defined(NO_SOUND)
 	// NB: sound is initialized at this point, but EFX support is *not* guaranteed
 	efx.CommitEffects(mapInfo->efxprops);
 	#endif
+	std::cout << "FinishedLoading5\n";
+
 }
 
 
@@ -275,12 +290,15 @@ bool CLoadScreen::Update()
 	if (game->IsDoneLoading()) {
 		CLoadScreen::DeleteInstance();
 		FinishedLoading();
+		std::cout << "CLoadScreen::Update() return true1" << "\n";
 		return true;
 	}
 
 	// without this call the window manager would think the window is unresponsive and thus ask for hard kill
 	if (!mtLoading)
 		spring::UnfreezeSpring(WDT_LOAD);
+
+	std::cout << "CLoadScreen::Update() return true2" << "\n";
 
 	return true;
 }

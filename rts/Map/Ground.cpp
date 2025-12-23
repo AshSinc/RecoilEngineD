@@ -17,6 +17,7 @@
 
 static inline float InterpolateCornerHeight(float x, float z, const float* cornerHeightMap)
 {
+	return 0.0f;
 	// NOTE:
 	// This isn't a bilinear interpolation. Instead it interpolates
 	// on the 2 triangles that form the ground quad:
@@ -281,10 +282,10 @@ float CGround::LineGroundCol(float3 from, float3 to, bool synced)
 		int zp = fsz;
 
 		for (unsigned int i = 0, n = Square(mapDims.mapyp1); (Square(i) <= n && zp != tsz); i++) {
-			const float ret = LineGroundSquareCol(hm, nm,  from, to,  fsx, zp);
+			// const float ret = LineGroundSquareCol(hm, nm,  from, to,  fsx, zp);
 
-			if (ret >= 0.0f)
-				return (ret + skippedDist);
+			// if (ret >= 0.0f)
+			// 	return (ret + skippedDist);
 
 			zp += dirz;
 		}
@@ -297,10 +298,10 @@ float CGround::LineGroundCol(float3 from, float3 to, bool synced)
 		int xp = fsx;
 
 		for (unsigned int i = 0, n = Square(mapDims.mapxp1); (Square(i) <= n && xp != tsx); i++) {
-			const float ret = LineGroundSquareCol(hm, nm,  from, to,  xp, fsz);
+			// const float ret = LineGroundSquareCol(hm, nm,  from, to,  xp, fsz);
 
-			if (ret >= 0.0f)
-				return (ret + skippedDist);
+			// if (ret >= 0.0f)
+			// 	return (ret + skippedDist);
 
 			xp += dirx;
 		}
@@ -335,10 +336,10 @@ float CGround::LineGroundCol(float3 from, float3 to, bool synced)
 
 		for (unsigned int i = 0, n = Square(mapDims.mapxp1) + Square(mapDims.mapyp1); !stopTrace; i++) {
 			// test for collision with the ground-square triangles
-			const float ret = LineGroundSquareCol(hm, nm,  from, to,  curx, curz);
+			// const float ret = LineGroundSquareCol(hm, nm,  from, to,  curx, curz);
 
-			if (ret >= 0.0f)
-				return (ret + skippedDist);
+			// if (ret >= 0.0f)
+			// 	return (ret + skippedDist);
 
 			// check if we reached the end already and need to stop the loop
 			const bool endReached = ((curx == tsx && curz == tsz) || (Square(i) > n));
@@ -435,6 +436,7 @@ float CGround::LineGroundWaterCol(const float3 pos, const float3 dir, float len,
 
 float CGround::GetApproximateHeight(float x, float z, bool synced)
 {
+	return 0.0f;
 	RECOIL_DETAILED_TRACY_ZONE;
 	const float* heightMap = readMap->GetSharedCenterHeightMap(synced);
 

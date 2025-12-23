@@ -295,8 +295,8 @@ void PathingState::CalcOffsetsAndPathCosts(unsigned int threadNum, spring::barri
 
 	pathBarrier->wait();
 
-	while ((i = --costBlockNum) >= 0)
-		EstimatePathCosts(maxBlockIdx - i, threadNum);
+	//while ((i = --costBlockNum) >= 0)
+	//	EstimatePathCosts(maxBlockIdx - i, threadNum);
 }
 
 void PathingState::CalculateBlockOffsets(unsigned int blockIdx, unsigned int threadNum)
@@ -326,13 +326,17 @@ void PathingState::CalculateBlockOffsets(unsigned int blockIdx, unsigned int thr
  */
 int2 PathingState::FindBlockPosOffset(const MoveDef& moveDef, unsigned int blockX, unsigned int blockZ, int threadNum) const
 {
-	RECOIL_DETAILED_TRACY_ZONE;
-	// lower corner position of block
 	const unsigned int lowerX = blockX * BLOCK_SIZE;
 	const unsigned int lowerZ = blockZ * BLOCK_SIZE;
+	int2 bestPos(lowerX + (BLOCK_SIZE >> 1), lowerZ + (BLOCK_SIZE >> 1));
+	return bestPos;
+	RECOIL_DETAILED_TRACY_ZONE;
+	// lower corner position of block
+	// const unsigned int lowerX = blockX * BLOCK_SIZE;
+	// const unsigned int lowerZ = blockZ * BLOCK_SIZE;
 	const unsigned int blockArea = (BLOCK_SIZE * BLOCK_SIZE) / SQUARE_SIZE;
 
-	int2 bestPos(lowerX + (BLOCK_SIZE >> 1), lowerZ + (BLOCK_SIZE >> 1));
+	// int2 bestPos(lowerX + (BLOCK_SIZE >> 1), lowerZ + (BLOCK_SIZE >> 1));
 	float bestCost = std::numeric_limits<float>::max();
 
 	// same as above, but with squares sorted by their baseCost
@@ -928,14 +932,15 @@ void PathingState::PromotePathForCurrentFrame(
 std::uint32_t PathingState::CalcHash(const char* caller) const
 {
 	RECOIL_DETAILED_TRACY_ZONE;
-	const unsigned int hmChecksum = readMap->CalcHeightmapChecksum();
+	// const unsigned int hmChecksum = readMap->CalcHeightmapChecksum();
 	const unsigned int tmChecksum = readMap->CalcTypemapChecksum();
 	const unsigned int mdChecksum = moveDefHandler.GetCheckSum();
-	const unsigned int peHashCode = (hmChecksum + tmChecksum + mdChecksum + BLOCK_SIZE + PATHESTIMATOR_VERSION);
+	// const unsigned int peHashCode = (hmChecksum + tmChecksum + mdChecksum + BLOCK_SIZE + PATHESTIMATOR_VERSION);
+	const unsigned int peHashCode = (tmChecksum + mdChecksum + BLOCK_SIZE + PATHESTIMATOR_VERSION);
 
 	LOG("[PathingState::%s][%s] BLOCK_SIZE=%u", __func__, caller, BLOCK_SIZE);
 	LOG("[PathingState::%s][%s] PATHESTIMATOR_VERSION=%u", __func__, caller, PATHESTIMATOR_VERSION);
-	LOG("[PathingState::%s][%s] heightMapChecksum=%x", __func__, caller, hmChecksum);
+	// LOG("[PathingState::%s][%s] heightMapChecksum=%x", __func__, caller, hmChecksum);
 	LOG("[PathingState::%s][%s] typeMapChecksum=%x", __func__, caller, tmChecksum);
 	LOG("[PathingState::%s][%s] moveDefChecksum=%x", __func__, caller, mdChecksum);
 	LOG("[PathingState::%s][%s] estimatorHashCode=%x", __func__, caller, peHashCode);

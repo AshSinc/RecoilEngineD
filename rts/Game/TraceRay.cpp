@@ -388,8 +388,10 @@ float GuiTraceRay(
 
 	// ground and water-plane intersection
 	const float    guiRayLength = length;
-	const float groundRayLength = CGround::LineGroundCol(start, dir, guiRayLength, false);
-	const float  waterRayLength = CGround::LinePlaneCol(start, dir, guiRayLength, CGround::GetWaterPlaneLevel());
+	// const float groundRayLength = CGround::LineGroundCol(start, dir, guiRayLength, false);
+	// const float  waterRayLength = CGround::LinePlaneCol(start, dir, guiRayLength, CGround::GetWaterPlaneLevel());
+	const float groundRayLength = 100000.0f;
+	const float  waterRayLength = 100000.0f;
 
 	float minRayLength = groundRayLength;
 	float minIngressDist = length;

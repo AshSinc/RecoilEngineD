@@ -311,15 +311,15 @@ void LuaObjectDrawer::SetDrawPassGlobalLODFactor(LuaObjType objType)
 		return;
 	}
 
-	if (IWater::GetWater()->DrawReflectionPass()) {
-		LuaObjectMaterialData::SetGlobalLODFactor(objType, GetLODScaleReflection(objType) * camera->GetLPPScale());
-		return;
-	}
+	// if (IWater::GetWater()->DrawReflectionPass()) {
+	// 	LuaObjectMaterialData::SetGlobalLODFactor(objType, GetLODScaleReflection(objType) * camera->GetLPPScale());
+	// 	return;
+	// }
 
-	if (IWater::GetWater()->DrawRefractionPass()) {
-		LuaObjectMaterialData::SetGlobalLODFactor(objType, GetLODScaleRefraction(objType) * camera->GetLPPScale());
-		return;
-	}
+	// if (IWater::GetWater()->DrawRefractionPass()) {
+	// 	LuaObjectMaterialData::SetGlobalLODFactor(objType, GetLODScaleRefraction(objType) * camera->GetLPPScale());
+	// 	return;
+	// }
 
 	LuaObjectMaterialData::SetGlobalLODFactor(objType, GetLODScale(objType) * camera->GetLPPScale());
 }

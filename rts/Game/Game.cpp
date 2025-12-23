@@ -75,7 +75,7 @@
 #include "Sim/Misc/DamageArrayHandler.h"
 #include "Sim/Misc/YardmapStatusEffectsMap.h"
 #include "Sim/Misc/GeometricObjects.h"
-#include "Sim/Misc/GroundBlockingObjectMap.h"
+// #include "Sim/Misc/GroundBlockingObjectMap.h"
 #include "Sim/Misc/BuildingMaskMap.h"
 #include "Sim/Misc/LosHandler.h"
 #include "Sim/Misc/ModInfo.h"
@@ -482,7 +482,7 @@ void CGame::Load(const std::string& mapFileName)
 		{
 			ENTER_SYNCED_CODE();
 			//needed in case pre-game terraform changed the map
-			readMap->UpdateHeightBounds();
+			// readMap->UpdateHeightBounds();
 			Watchdog::ClearTimer(WDT_LOAD);
 			pathManager->PostFinalizeRefresh();
 			Watchdog::ClearTimer(WDT_LOAD);
@@ -504,8 +504,10 @@ void CGame::Load(const std::string& mapFileName)
 	if (!forcedQuit) {
 		try {
 			LOG("[Game::%s][8] globalQuit=%d forcedQuit=%d", __func__, globalQuit.load(), forcedQuit);
-
+			
 			LoadSkirmishAIs();
+	std::cout << "LoadSkirmishAIs()\n";
+
 			Watchdog::ClearTimer(WDT_LOAD);
 		} catch (const content_error& e) {
 			contentErrors.emplace_back(e.what());
@@ -523,6 +525,7 @@ void CGame::Load(const std::string& mapFileName)
 	if (!contentErrors.empty())
 		ErrorMessageBox(fmt::format("Errors:\n{}", fmt::join(contentErrors, "\n")).c_str(), "Recoil: caught content_error(s)", MBF_OK | MBF_CRASH);
 
+	std::cout << "End of game.load()\n";
 	loadDone = true;
 	globalQuit = globalQuit | forcedQuit;
 }
@@ -536,8 +539,8 @@ void CGame::LoadMap(const std::string& mapFileName)
 		SCOPED_ONCE_TIMER("Game::LoadMap");
 		loadscreen->SetLoadMessage("Parsing Map Information");
 
-		waterRendering->Init();
-		mapRendering->Init();
+		//waterRendering->Init();
+		//mapRendering->Init();
 
 		// simulation components
 		helper->Init();
@@ -548,7 +551,7 @@ void CGame::LoadMap(const std::string& mapFileName)
 		static_assert(BUILD_GRID_RESOLUTION == 2);
 		buildingMaskMap.Init(mapDims.hmapx * mapDims.hmapy);
 
-		groundBlockingObjectMap.Init(mapDims.mapSquares);
+		// groundBlockingObjectMap.Init(mapDims.mapSquares);
 		yardmapStatusEffectsMap.InitNewYardmapStatusEffectsMap();
 	}
 
@@ -646,10 +649,14 @@ void CGame::PreLoadSimulation(LuaParser* defsParser)
 	ENTER_SYNCED_CODE();
 
 	loadscreen->SetLoadMessage("Creating Smooth Height Mesh");
-	smoothGround.Init(int2(mapDims.mapx, mapDims.mapy), modInfo.smoothMeshResDivider, modInfo.smoothMeshSmoothRadius);
-
+	// smoothGround.Init(int2(mapDims.mapx, mapDims.mapy), modInfo.smoothMeshResDivider, modInfo.smoothMeshSmoothRadius);
+	mapDims = MapDimensions();
+	mapDims.Initialize();
+	// mapDims.mapx = 4096;
+	// mapDims.mapy = 4096;
 	loadscreen->SetLoadMessage("Creating QuadField & CEGs");
 	moveDefHandler.Init(defsParser);
+	
 	quadField.Init(int2(mapDims.mapx, mapDims.mapy), modInfo.quadFieldQuadSizeInElmos);
 	damageArrayHandler.Init(defsParser);
 	explGenHandler.Init();
@@ -683,10 +690,18 @@ void CGame::PostLoadSimulation(LuaParser* defsParser)
 	MoveTypeFactory::InitStatic();
 	CWeaponLoader::InitStatic(unitDefHandler);
 
+	std::cout << "HERE  1 \n";
+
 	unitHandler.Init();
 	featureHandler.Init();
 	projectileHandler.Init();
+
+	std::cout << "HERE  2 \n";
+
 	CLosHandler::InitStatic();
+
+	
+
 
 	readMap->InitHeightMapDigestVectors(losHandler->los.size);
 
@@ -707,21 +722,34 @@ void CGame::PostLoadSimulation(LuaParser* defsParser)
 	//   Lua which can vary each run with {mod,map}options, etc
 	//   --> need a way to let Lua flush it or re-calculate map
 	//   checksum (over heightmap + blockmap, not raw archive)
-	mapDamage = IMapDamage::InitMapDamage();
+	// mapDamage = IMapDamage::InitMapDamage();
 	pathManager = IPathManager::GetInstance(modInfo.pathFinderSystem);
+	std::cout << "HERE  3 \n";
+
 	moveDefHandler.PostSimInit();
+
+	std::cout << "HERE  4 \n";
+
 
 	// load map-specific features
 	loadscreen->SetLoadMessage("Initializing Map Features");
+	std::cout << "HERE  5 \n";
+
 	featureDefHandler->LoadFeatureDefsFromMap();
+	std::cout << "HERE  6 \n";
+
 	if (saveFileHandler == nullptr)
 		featureHandler.LoadFeaturesFromMap();
+	std::cout << "HERE  7 \n";
+
 
 	// must be called after features are all loaded
 	unitDefHandler->SanitizeUnitDefs();
+	std::cout << "HERE  8 \n";
 
-	envResHandler.LoadTidal(mapInfo->map.tidalStrength);
-	envResHandler.LoadWind(mapInfo->atmosphere.minWind, mapInfo->atmosphere.maxWind);
+
+	// envResHandler.LoadTidal(mapInfo->map.tidalStrength);
+	// envResHandler.LoadWind(mapInfo->atmosphere.minWind, mapInfo->atmosphere.maxWind);
 
 
 	inMapDrawerModel = new CInMapDrawModel();
@@ -883,17 +911,29 @@ void CGame::LoadLua(bool dryRun, bool onlyUnsynced)
 
 void CGame::LoadSkirmishAIs()
 {
+	std::cout << "LoadSkirmishAIs1()\n";
+
 	if (gameSetup->hostDemo)
 		return;
+	std::cout << "LoadSkirmishAIs2()\n";
+
 	// happens if LoadInterface was skipped or interrupted on forcedQuit
 	// the AI callback code expects this to be non-empty on construction
 	if (uiGroupHandlers.empty())
 		return;
 
+	std::cout << "LoadSkirmishAIs3()\n";
+
+
 	// create Skirmish AI's if required
 	const std::vector<uint8_t>& localAIs = skirmishAIHandler.GetSkirmishAIsByPlayer(gu->myPlayerNum);
+	std::cout << "LoadSkirmishAIs4()\n";
+
 	if (localAIs.empty() && !IsSavedGame())
 		return;
+
+	std::cout << "LoadSkirmishAIs5()\n";
+
 
 	SCOPED_ONCE_TIMER("Game::LoadSkirmishAIs");
 	loadscreen->SetLoadMessage("Loading Skirmish AIs");
@@ -1059,7 +1099,7 @@ void CGame::KillSimulation()
 	spring::SafeDelete(readMap);
 	smoothGround.Kill();
 
-	groundBlockingObjectMap.Kill();
+	//groundBlockingObjectMap.Kill();
 	buildingMaskMap.Kill();
 
 	CLosHandler::KillStatic(gu->globalReload);

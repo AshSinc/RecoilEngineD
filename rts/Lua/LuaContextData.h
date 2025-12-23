@@ -6,6 +6,7 @@
 #include "Lua/LuaAllocState.h"
 #include "Lua/LuaGarbageCollectCtrl.h"
 #include "LuaMemPool.h"
+#include <iostream>
 #if (!defined(UNITSYNC) && !defined(DEDICATED))
 #include "LuaShaders.h"
 #include "LuaTextures.h"
@@ -53,10 +54,15 @@ public:
 	~luaContextData() {
 		// raw cast; LuaHandle is not a known type here
 		// ownerless LCD's are common and uninteresting
+		std::cout << "Releaseing Luacontext1\n";
 		if (owner != nullptr)
 			memPool->LogStats((((CEventClient*) owner)->GetName()).c_str(), synced? "synced": "unsynced");
 
+		std::cout << "Releaseing Luacontext2\n";
+
 		LuaMemPool::ReleasePtr(memPool, owner);
+		std::cout << "Releaseing Luacontext3\n";
+
 	}
 
 	luaContextData(const luaContextData& lcd) = delete;

@@ -376,44 +376,44 @@ void CReadMap::Initialize()
 	typeMap.clear();
 	typeMap.resize(mapDims.hmapx * mapDims.hmapy, 0);
 
-	assert(heightMapSyncedPtr != nullptr);
-	assert(heightMapUnsyncedPtr != nullptr);
-	assert(originalHeightMapPtr != nullptr);
+	// assert(heightMapSyncedPtr != nullptr);
+	// assert(heightMapUnsyncedPtr != nullptr);
+	// assert(originalHeightMapPtr != nullptr);
 
-	{
-		sharedCornerHeightMaps[0] = &(*heightMapUnsyncedPtr)[0];
-		sharedCornerHeightMaps[1] = &(*heightMapSyncedPtr)[0];
+	// {
+	// 	sharedCornerHeightMaps[0] = &(*heightMapUnsyncedPtr)[0];
+	// 	sharedCornerHeightMaps[1] = &(*heightMapSyncedPtr)[0];
 
-		sharedCenterHeightMaps[0] = &centerHeightMap[0]; // NO UNSYNCED VARIANT
-		sharedCenterHeightMaps[1] = &centerHeightMap[0];
+	// 	sharedCenterHeightMaps[0] = &centerHeightMap[0]; // NO UNSYNCED VARIANT
+	// 	sharedCenterHeightMaps[1] = &centerHeightMap[0];
 
-		sharedFaceNormals[0] = &faceNormalsUnsynced[0];
-		sharedFaceNormals[1] = &faceNormalsSynced[0];
+	// 	sharedFaceNormals[0] = &faceNormalsUnsynced[0];
+	// 	sharedFaceNormals[1] = &faceNormalsSynced[0];
 
-		sharedCenterNormals[0] = &centerNormalsUnsynced[0];
-		sharedCenterNormals[1] = &centerNormalsSynced[0];
+	// 	sharedCenterNormals[0] = &centerNormalsUnsynced[0];
+	// 	sharedCenterNormals[1] = &centerNormalsSynced[0];
 
-		sharedSlopeMaps[0] = &slopeMap[0]; // NO UNSYNCED VARIANT
-		sharedSlopeMaps[1] = &slopeMap[0];
-	}
+	// 	sharedSlopeMaps[0] = &slopeMap[0]; // NO UNSYNCED VARIANT
+	// 	sharedSlopeMaps[1] = &slopeMap[0];
+	// }
 
-	InitHeightBounds();
+	// InitHeightBounds();
 
 	syncedHeightMapDigests.clear();
 	unsyncedHeightMapDigests.clear();
 
 	// not callable here because losHandler is still uninitialized, deferred to Game::PostLoadSim
 	// InitHeightMapDigestVectors();
-	UpdateHeightMapSynced({0, 0, mapDims.mapx, mapDims.mapy});
+	// UpdateHeightMapSynced({0, 0, mapDims.mapx, mapDims.mapy});
 
-	unsyncedHeightInfo.resize(
-		(mapDims.mapx / PATCH_SIZE) * (mapDims.mapy / PATCH_SIZE),
-		float3{
-			initHeightBounds.x,
-			initHeightBounds.y,
-			(initHeightBounds.y + initHeightBounds.x) * 0.5f
-		}
-	);
+	// unsyncedHeightInfo.resize(
+	// 	(mapDims.mapx / PATCH_SIZE) * (mapDims.mapy / PATCH_SIZE),
+	// 	float3{
+	// 		initHeightBounds.x,
+	// 		initHeightBounds.y,
+	// 		(initHeightBounds.y + initHeightBounds.x) * 0.5f
+	// 	}
+	// );
 	// FIXME: sky & skyLight aren't created yet (crashes in SMFReadMap.cpp)
 	// UpdateDraw(true);
 }

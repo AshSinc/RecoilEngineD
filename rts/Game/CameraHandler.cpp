@@ -135,6 +135,7 @@ CCameraHandler::CCameraHandler() {
 	RECOIL_DETAILED_TRACY_ZONE;
 	camControllers.fill(nullptr);
 	camControllers[CAMERA_MODE_DUMMY] = new (camControllerMem[CAMERA_MODE_DUMMY]) CDummyController();
+	camControllers[CAMERA_MODE_PIVOT] = new (camControllerMem[CAMERA_MODE_PIVOT]) CPivotController();
 }
 
 CCameraHandler::~CCameraHandler() {
@@ -152,9 +153,11 @@ void CCameraHandler::Init()
 	{
 		InitControllers();
 
-		for (unsigned int i = 0; i < CAMERA_MODE_DUMMY; i++) {
-			nameModeMap[camControllers[i]->GetName()] = i;
-		}
+		// for (unsigned int i = 0; i < CAMERA_MODE_DUMMY; i++) {
+		// 	nameModeMap[camControllers[i]->GetName()] = i;
+		// }
+		
+		nameModeMap["pivot"] = 0;
 	}
 	{
 		RegisterAction("viewfps");
@@ -188,10 +191,14 @@ void CCameraHandler::Init()
 	ConfigNotify("", "");
 
 	SetCameraMode(configHandler->GetString("CamModeName"));
+	// SetCameraMode(configHandler->GetString("CamModeName"));
 
-	for (CCameraController* cc: camControllers) {
-		cc->Update();
-	}
+	// for (CCameraController* cc: camControllers) {
+	// 	cc->Update();
+	// }
+	// for (CCameraController* cc: camControllers) {
+		camControllers[8]->Update();
+	// }
 }
 
 void CCameraHandler::Kill()
@@ -215,13 +222,13 @@ void CCameraHandler::InitControllers()
 	static_assert(sizeof(CPivotController) <= sizeof(camControllerMem[CAMERA_MODE_PIVOT]), "");
 
 	// FPS camera must always be the first one in the list
-	camControllers[CAMERA_MODE_FIRSTPERSON] = new (camControllerMem[CAMERA_MODE_FIRSTPERSON])         CFPSController();
-	camControllers[CAMERA_MODE_OVERHEAD   ] = new (camControllerMem[CAMERA_MODE_OVERHEAD   ])    COverheadController();
-	camControllers[CAMERA_MODE_SPRING     ] = new (camControllerMem[CAMERA_MODE_SPRING     ])      CSpringController();
-	camControllers[CAMERA_MODE_ROTOVERHEAD] = new (camControllerMem[CAMERA_MODE_ROTOVERHEAD]) CRotOverheadController();
-	camControllers[CAMERA_MODE_FREE       ] = new (camControllerMem[CAMERA_MODE_FREE       ])        CFreeController();
-	camControllers[CAMERA_MODE_OVERVIEW   ] = new (camControllerMem[CAMERA_MODE_OVERVIEW   ])    COverviewController();
-	camControllers[CAMERA_MODE_DOLLY      ] = new (camControllerMem[CAMERA_MODE_DOLLY      ])    CDollyController();
+	//camControllers[CAMERA_MODE_FIRSTPERSON] = new (camControllerMem[CAMERA_MODE_FIRSTPERSON])         CFPSController();
+	// camControllers[CAMERA_MODE_OVERHEAD   ] = new (camControllerMem[CAMERA_MODE_OVERHEAD   ])    COverheadController();
+	// camControllers[CAMERA_MODE_SPRING     ] = new (camControllerMem[CAMERA_MODE_SPRING     ])      CSpringController();
+	// camControllers[CAMERA_MODE_ROTOVERHEAD] = new (camControllerMem[CAMERA_MODE_ROTOVERHEAD]) CRotOverheadController();
+	// camControllers[CAMERA_MODE_FREE       ] = new (camControllerMem[CAMERA_MODE_FREE       ])        CFreeController();
+	// camControllers[CAMERA_MODE_OVERVIEW   ] = new (camControllerMem[CAMERA_MODE_OVERVIEW   ])    COverviewController();
+	// camControllers[CAMERA_MODE_DOLLY      ] = new (camControllerMem[CAMERA_MODE_DOLLY      ])    CDollyController();
 	camControllers[CAMERA_MODE_PIVOT] = new (camControllerMem[CAMERA_MODE_PIVOT]) CPivotController();
 
 }

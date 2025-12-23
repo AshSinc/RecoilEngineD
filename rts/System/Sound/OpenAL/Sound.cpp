@@ -846,7 +846,7 @@ void CSound::UpdateListenerReal()
 
 	// reduce the rolloff when the camera is high above the ground (so we still hear something in tab mode or far zoom)
 	// for altitudes up to and including 600 elmos, the rolloff is always clamped to 1
-	const float camHeight = std::max(1.0f, myPos.y - CGround::GetHeightAboveWater(myPos.x, myPos.z));
+	const float camHeight = 1.0f;//std::max(1.0f, myPos.y - CGround::GetHeightAboveWater(myPos.x, myPos.z));
 	const float rolloffMod = std::min(600.0f / camHeight, 1.0f);
 
 	CSoundSource::SetHeightRolloffModifer(rolloffMod);

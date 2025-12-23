@@ -247,6 +247,7 @@ void CQuadField::GetQuadsOnRay(QuadFieldQuery& qfq, const float3& start, const f
 	const int startZ = std::clamp <int> (startZuc, 0, numQuadsZ - 1);
 	const int finalZ = std::clamp <int> (finalZuc, 0, numQuadsZ - 1);
 
+	return;
 	assert(finalZ < quadSizeZ);
 
 	const float invDirZ = 1.0f / dir.z;
@@ -337,6 +338,7 @@ void CQuadField::GetQuadsOnWideRay(QuadFieldQuery& qfq, const float3& start, con
 	const int startZ = std::clamp <int> (startZuc, 0, numQuadsZ - 1);
 	const int finalZ = std::clamp <int> (finalZuc, 0, numQuadsZ - 1);
 
+	return;
 	assert(finalZ < quadSizeZ);
 
 	const float invDirZ = 1.0f / dir.z;

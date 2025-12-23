@@ -630,16 +630,17 @@ void CPathEstimator::FinishSearch(const MoveDef& moveDef, const CPathFinderDef& 
 std::uint32_t CPathEstimator::CalcHash(const char* caller) const
 {
 	RECOIL_DETAILED_TRACY_ZONE;
-	const unsigned int hmChecksum = readMap->CalcHeightmapChecksum();
-	const unsigned int tmChecksum = readMap->CalcTypemapChecksum();
+	// const unsigned int hmChecksum = readMap->CalcHeightmapChecksum();
+	// const unsigned int tmChecksum = readMap->CalcTypemapChecksum();
 	const unsigned int mdChecksum = moveDefHandler.GetCheckSum();
 	const unsigned int bmChecksum = groundBlockingObjectMap.CalcChecksum();
-	const unsigned int peHashCode = (hmChecksum + tmChecksum + mdChecksum + bmChecksum + BLOCK_SIZE + PATHESTIMATOR_VERSION);
+	// const unsigned int peHashCode = (hmChecksum + tmChecksum + mdChecksum + bmChecksum + BLOCK_SIZE + PATHESTIMATOR_VERSION);
+	const unsigned int peHashCode = (bmChecksum + mdChecksum + BLOCK_SIZE + PATHESTIMATOR_VERSION);
 
 	LOG("[PathEstimator::%s][%s] BLOCK_SIZE=%u", __func__, caller, BLOCK_SIZE);
 	LOG("[PathEstimator::%s][%s] PATHESTIMATOR_VERSION=%u", __func__, caller, PATHESTIMATOR_VERSION);
-	LOG("[PathEstimator::%s][%s] heightMapChecksum=%x", __func__, caller, hmChecksum);
-	LOG("[PathEstimator::%s][%s] typeMapChecksum=%x", __func__, caller, tmChecksum);
+	// LOG("[PathEstimator::%s][%s] heightMapChecksum=%x", __func__, caller, hmChecksum);
+	// LOG("[PathEstimator::%s][%s] typeMapChecksum=%x", __func__, caller, tmChecksum);
 	LOG("[PathEstimator::%s][%s] moveDefChecksum=%x", __func__, caller, mdChecksum);
 	LOG("[PathEstimator::%s][%s] blockMapChecksum=%x", __func__, caller, bmChecksum);
 	LOG("[PathEstimator::%s][%s] estimatorHashCode=%x", __func__, caller, peHashCode);

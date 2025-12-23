@@ -77,6 +77,7 @@ void CWorldDrawer::InitPre() const
 	CFeatureDrawer::InitStatic();
 }
 
+#include <iostream>
 void CWorldDrawer::InitPost() const
 {
 	char buf[512] = {0};
@@ -108,11 +109,14 @@ void CWorldDrawer::InitPost() const
 	{
 		// SMFGroundDrawer accesses InfoTextureHandler, create it first
 		loadscreen->SetLoadMessage("Creating InfoTextureHandler");
+		std::cout <<"HERE10\n";
 		IInfoTextureHandler::Create();
+		std::cout <<"HERE11\n";
+
 	}
 	try {
 		loadscreen->SetLoadMessage("Creating GroundDrawer");
-		readMap->InitGroundDrawer();
+		//readMap->InitGroundDrawer();
 	} catch (const content_error& e) {
 		memset(buf, 0, sizeof(buf));
 		snprintf(buf, sizeof(buf), "[WorldDrawer::%s] caught exception \"%s\"", __func__, e.what());
@@ -120,7 +124,7 @@ void CWorldDrawer::InitPost() const
 
 	{
 		loadscreen->SetLoadMessage("Creating GrassDrawer");
-		grassDrawer = new CGrassDrawer();
+		//grassDrawer = new CGrassDrawer();
 	}
 	{
 		inMapDrawerView = new CInMapDrawView();
@@ -130,7 +134,7 @@ void CWorldDrawer::InitPost() const
 		DepthBufferCopy::Init();
 	}
 	{
-		IGroundDecalDrawer::Init();
+		// IGroundDecalDrawer::Init();
 	}
 	{
 		loadscreen->SetLoadMessage("Creating ProjectileDrawer & UnitDrawer");
@@ -212,7 +216,7 @@ void CWorldDrawer::Update(bool newSimFrame)
 
 	if (globalRendering->drawGround) {
 		ZoneScopedN("GroundDrawer::Update");
-		(readMap->GetGroundDrawer())->Update();
+		// (readMap->GetGroundDrawer())->Update();
 	}
 	// XXX: done in CGame, needs to get updated even when !doDrawWorld
 	// (it updates unitdrawpos which is used for maximized minimap too)
@@ -255,16 +259,16 @@ void CWorldDrawer::GenerateIBLTextures() const
 	}
 
 	{
-		SCOPED_TIMER("Draw::World::UpdateReflTex");
-		SCOPED_GL_DEBUGGROUP("Draw::World::UpdateReflTex");
-		cubeMapHandler.UpdateReflectionTexture();
+		// SCOPED_TIMER("Draw::World::UpdateReflTex");
+		// SCOPED_GL_DEBUGGROUP("Draw::World::UpdateReflTex");
+		// cubeMapHandler.UpdateReflectionTexture();
 	}
 
 	SCOPED_GL_DEBUGGROUP("Draw::World::UpdateMisc");
 	bool sunDirUpd = ISky::GetSky()->GetLight()->Update();
 	bool sunLightUpd = sunLighting->IsUpdated();
 	bool skyUpd = ISky::GetSky()->IsUpdated();
-	bool waterUpd = waterRendering->IsUpdated();
+	// bool waterUpd = waterRendering->IsUpdated();
 
 	if (sunDirUpd) {
 		SCOPED_TIMER("Draw::World::UpdateSpecTex");
@@ -274,7 +278,7 @@ void CWorldDrawer::GenerateIBLTextures() const
 		SCOPED_TIMER("Draw::World::UpdateSkyTex");
 		ISky::GetSky()->UpdateSkyTexture();
 	}
-	if (sunDirUpd || sunLightUpd || waterUpd) {
+	if (sunDirUpd || sunLightUpd) {// || waterUpd) {
 		SCOPED_TIMER("Draw::World::UpdateShadingTex");
 		readMap->UpdateShadingTexture();
 	}
@@ -331,7 +335,8 @@ void CWorldDrawer::DrawOpaqueObjects() const
 {
 	CBaseGroundDrawer* gd = readMap->GetGroundDrawer();
 
-	if (globalRendering->drawGround) {
+	// if (globalRendering->drawGround) {
+	if (false) {
 		{
 			SCOPED_TIMER("Draw::World::Terrain");
 			SCOPED_GL_DEBUGGROUP("Draw::World::Terrain");
